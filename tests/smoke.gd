@@ -35,17 +35,27 @@ func _init() -> void:
 		push_error("Impact laboratory actors were not created")
 		quit(1)
 		return
-	player.set_connectors_enabled(true)
-	npc.set_connectors_enabled(true)
 	if not player.show_connectors or not npc.show_connectors:
-		push_error("Connector comparison could not be enabled")
+		push_error("Permanent doodle connectors were not enabled")
+		quit(1)
+		return
+	if crate.z_index >= player.z_index:
+		push_error("Short crate must render below doodle characters")
 		quit(1)
 		return
 	player.push_target = npc
-	if not player.push_nearby_npc() or not npc.ragdoll_active:
-		push_error("Contextual NPC push did not start the ragdoll")
+	if not player.push_nearby_npc() or player.push_animation_time <= 0.0:
+		push_error("Contextual NPC push animation did not start")
 		quit(1)
 		return
+	for frame in 13:
+		await physics_frame
+	if not npc.ragdoll_active:
+		push_error("Timed push pose did not deliver the NPC impact")
+		quit(1)
+		return
+	for frame in 13:
+		await physics_frame
 	player.trigger_ragdoll(Vector2(390, 0))
 	if not player.ragdoll_active or player.rag_positions.size() != 6:
 		push_error("Ragdoll did not initialise all six procedural body parts")
@@ -57,5 +67,5 @@ func _init() -> void:
 		push_error("Ragdoll did not recover into controlled movement")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.0.3 impact laboratory smoke test passed")
+	print("4TH HEAVEN v0.1.0 native foundation smoke test passed")
 	quit(0)

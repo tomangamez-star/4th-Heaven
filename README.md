@@ -1,4 +1,4 @@
-# 4TH HEAVEN v0.0.3
+# 4TH HEAVEN v0.1.0
 
 First procedural character movement prototype for **4TH HEAVEN**.
 
@@ -12,10 +12,12 @@ First procedural character movement prototype for **4TH HEAVEN**.
 - Running-stop momentum tug without changing the approved walk/run timing
 - Six-part spring ragdoll with launch, roll, slide and automatic recovery
 - Temporary impact-burst test button above Run
-- Optional rounded limb connectors with an in-game comparison toggle
+- Permanent rounded doodle limb connectors
 - First wandering NPC using the same procedural doodle rig
 - Context-sensitive directional NPC shove action
 - Stylized procedural brick wall and top-down physics crate
+- Timed two-hand push pose before NPC impact
+- Native Android workflow with SDK, Java 17 and debug signing configured
 - Mobile joystick and hold-to-run control
 - Keyboard support: WASD/arrows, Shift or Space to run
 - Smooth follow camera

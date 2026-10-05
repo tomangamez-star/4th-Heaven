@@ -39,12 +39,16 @@ var home_position := Vector2.ZERO
 var ai_direction := Vector2.ZERO
 var ai_change_timer := 0.0
 var push_target
-var show_connectors := false
+var show_connectors := true
 var clothing_color := Color("#16a9bd")
 var clothing_dark := Color("#10242b")
 var hair_color := Color("#15171b")
 var hair_highlight := Color("#292b31")
 var skin_color := Color("#e9ab7b")
+var push_animation_time := 0.0
+var push_pose := 0.0
+var push_impact_done := false
+var push_pending_target
 
 func _ready() -> void:
 	visual = VisualScript.new()
@@ -54,9 +58,11 @@ func _ready() -> void:
 
 	var collider := CollisionShape2D.new()
 	var shape := CircleShape2D.new()
-	shape.radius = 25.0
+	# Matches the visible head/limb footprint so normal doodles never overlap.
+	shape.radius = 33.0
 	collider.shape = shape
 	add_child(collider)
+	z_index = 10
 
 func _physics_process(delta: float) -> void:
 	if not is_npc and ((is_instance_valid(controls) and controls.consume_ragdoll_request()) or Input.is_action_just_pressed("ragdoll")):
@@ -64,6 +70,11 @@ func _physics_process(delta: float) -> void:
 
 	if ragdoll_active:
 		_update_ragdoll(delta)
+		visual.queue_redraw()
+		return
+
+	if push_animation_time > 0.0:
+		_update_push_animation(delta)
 		visual.queue_redraw()
 		return
 
@@ -159,15 +170,44 @@ func _update_push_interaction() -> void:
 			push_nearby_npc()
 
 func push_nearby_npc() -> bool:
-	if not is_instance_valid(push_target) or push_target.ragdoll_active:
+	if push_animation_time > 0.0 or not is_instance_valid(push_target) or push_target.ragdoll_active:
 		return false
 	var direction := global_position.direction_to(push_target.global_position)
 	if direction.length_squared() < 0.1:
 		direction = display_facing
 	facing = direction
-	push_target.trigger_ragdoll(direction * 390.0)
-	velocity -= direction * 35.0
+	display_facing = direction
+	push_pending_target = push_target
+	push_animation_time = 0.001
+	push_pose = 0.0
+	push_impact_done = false
+	velocity = Vector2.ZERO
+	z_index = 12
+	if is_instance_valid(controls):
+		controls.set_push_visible(false)
 	return true
+
+func _update_push_animation(delta: float) -> void:
+	push_animation_time += delta
+	velocity = Vector2.ZERO
+	# Extend quickly, hold contact briefly, then retract cleanly.
+	if push_animation_time < 0.15:
+		push_pose = clampf(push_animation_time / 0.15, 0.0, 1.0)
+	elif push_animation_time < 0.23:
+		push_pose = 1.0
+	else:
+		push_pose = clampf(1.0 - (push_animation_time - 0.23) / 0.16, 0.0, 1.0)
+	if not push_impact_done and push_animation_time >= 0.16:
+		push_impact_done = true
+		if is_instance_valid(push_pending_target) and not push_pending_target.ragdoll_active:
+			var direction := global_position.direction_to(push_pending_target.global_position)
+			push_pending_target.trigger_ragdoll(direction * 390.0)
+	if push_animation_time >= 0.40:
+		push_animation_time = 0.0
+		push_pose = 0.0
+		push_impact_done = false
+		push_pending_target = null
+		z_index = 10
 
 func set_connectors_enabled(enabled: bool) -> void:
 	show_connectors = enabled

@@ -54,6 +54,14 @@ func _draw() -> void:
 			forward = forward.lerp(loose_forward, blend).normalized()
 			right = Vector2(-forward.y, forward.x)
 
+	if player.push_pose > 0.001:
+		var push_target_left := body_center + forward * 32.0 - right * 8.5
+		var push_target_right := body_center + forward * 32.0 + right * 8.5
+		left_arm = left_arm.lerp(push_target_left, player.push_pose)
+		right_arm = right_arm.lerp(push_target_right, player.push_pose)
+		body_center += forward * player.push_pose * 3.5
+		head_center += forward * player.push_pose * 2.0
+
 	# Optional rounded doodle connectors remain behind the endpoint circles.
 	if player.show_connectors:
 		draw_line(body_center, left_leg, Color("#303844"), 8.0, true)

@@ -4,6 +4,7 @@ const CRATE_SIZE := Vector2(72, 72)
 
 func _ready() -> void:
 	add_to_group("pushable_crate")
+	z_index = 3
 	mass = 2.7
 	gravity_scale = 0.0
 	linear_damp = 3.8

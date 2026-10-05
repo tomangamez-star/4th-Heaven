@@ -10,7 +10,6 @@ func _draw() -> void:
 	var rc: Vector2 = controls.run_center
 	var rag: Vector2 = controls.ragdoll_center
 	var push: Vector2 = controls.push_center
-	var toggle: Vector2 = controls.toggle_center
 	draw_circle(jc, 86.0, Color(0.035, 0.045, 0.055, 0.34))
 	draw_circle(jc, 84.0, Color(0.84, 0.94, 0.95, 0.10), false, 3.0)
 	draw_circle(jk, 37.0, Color(0.87, 0.96, 0.97, 0.31))
@@ -34,15 +33,6 @@ func _draw() -> void:
 	for angle in range(0, 360, 45):
 		var direction := Vector2.RIGHT.rotated(deg_to_rad(float(angle)))
 		draw_line(rag + direction * 16.0, rag + direction * 29.0, Color(1.0, 0.82, 0.54, 0.82), 4.0, true)
-
-	# Limb comparison toggle stays deliberately small and out of the play area.
-	var toggle_fill := Color(0.08, 0.65, 0.73, 0.72) if controls.connectors_enabled else Color(0.035, 0.045, 0.055, 0.48)
-	draw_circle(toggle, 38.0, toggle_fill)
-	draw_circle(toggle, 36.0, Color(0.84, 0.97, 0.98, 0.30), false, 2.5)
-	var link_ink := Color(0.94, 1.0, 1.0, 0.86)
-	draw_circle(toggle + Vector2(-12, 0), 7.0, link_ink)
-	draw_circle(toggle + Vector2(12, 0), 7.0, link_ink)
-	draw_line(toggle + Vector2(-7, 0), toggle + Vector2(7, 0), link_ink, 5.0, true)
 
 	# Contextual shove control only exists while an available NPC is close.
 	if controls.push_visible:
