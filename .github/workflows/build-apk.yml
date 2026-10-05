@@ -1,0 +1,37 @@
+name: Build 4TH HEAVEN APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot 4.3 and Android templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASE=https://github.com/godotengine/godot/releases/download/4.3-stable
+          curl -fL --retry 3 "$RELEASE/Godot_v4.3-stable_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          echo "$RUNNER_TEMP/godot" >> "$GITHUB_PATH"
+          curl -fL --retry 3 "$RELEASE/Godot_v4.3-stable_export_templates.tpz" -o "$RUNNER_TEMP/templates.tpz"
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.3.stable"
+          unzip -j -q "$RUNNER_TEMP/templates.tpz" 'templates/android*' -d "$HOME/.local/share/godot/export_templates/4.3.stable"
+      - name: Import, smoke test and export APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          GODOT=Godot_v4.3-stable_linux.x86_64
+          mkdir -p build
+          "$GODOT" --headless --editor --path . --import --quit
+          "$GODOT" --headless --path . --script tests/smoke.gd
+          "$GODOT" --headless --path . --export-debug Android build/4TH-HEAVEN-v0.0.1.apk
+          test -s build/4TH-HEAVEN-v0.0.1.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 4TH-HEAVEN-v0.0.1-APK
+          path: build/4TH-HEAVEN-v0.0.1.apk
+

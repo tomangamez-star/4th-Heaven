@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#17100a">
+  <title>4TH HEAVEN — Movement Lab</title>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#17100a;color:#eff;font-family:system-ui,sans-serif}
+    #shell{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#6d4728,#17100a 72%)}
+    #card{text-align:center;padding:28px}h1{margin:0;letter-spacing:.16em;font-size:clamp(26px,6vw,58px)}p{opacity:.72;margin:8px 0 24px}
+    button{border:1px solid #8deaf1;background:#0b8998;color:white;font-size:18px;font-weight:800;letter-spacing:.08em;padding:14px 34px;border-radius:999px;box-shadow:0 10px 32px #002c3488}
+    #game{display:none;position:fixed;inset:0;border:0;width:100%;height:100%;background:#17100a}
+  </style>
+</head>
+<body>
+  <main id="shell"><section id="card"><h1>4TH HEAVEN</h1><p>v0.0.1 · Doodle Movement Lab</p><button id="play">PLAY</button></section></main>
+  <iframe id="game" allow="autoplay; fullscreen; gamepad" src="about:blank"></iframe>
+  <script>
+    document.getElementById('play').onclick=async()=>{
+      try{if(screen.orientation?.lock)await screen.orientation.lock('landscape')}catch(_){ }
+      const game=document.getElementById('game');game.src='game.html';game.style.display='block';document.getElementById('shell').style.display='none';
+    };
+  </script>
+</body>
+</html>
+
