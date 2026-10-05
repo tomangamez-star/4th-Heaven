@@ -1,4 +1,4 @@
-# 4TH HEAVEN v0.0.1
+# 4TH HEAVEN v0.0.2
 
 First procedural character movement prototype for **4TH HEAVEN**.
 
@@ -9,6 +9,9 @@ First procedural character movement prototype for **4TH HEAVEN**.
 - Large circular head, anime hair, visible clothed torso, arms and legs
 - Smooth 360-degree walking and running
 - Movement-driven stride, arm swing, wobble, bounce, turn lag and run posture
+- Running-stop momentum tug without changing the approved walk/run timing
+- Six-part spring ragdoll with launch, roll, slide and automatic recovery
+- Temporary impact-burst test button above Run
 - Mobile joystick and hold-to-run control
 - Keyboard support: WASD/arrows, Shift or Space to run
 - Smooth follow camera
@@ -26,4 +29,3 @@ HEAVEN preview** or push to `main`.
 This build intentionally contains no city, NPCs, vehicles, combat or ragdoll.
 Its only purpose is judging the core doodle silhouette and movement feel before
 the world is built around it.
-

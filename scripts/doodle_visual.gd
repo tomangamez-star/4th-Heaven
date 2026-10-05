@@ -14,9 +14,15 @@ func _draw() -> void:
 	var step_wave: float = sin(phase)
 	var opposite: float = sin(phase + PI)
 	var cadence: float = absf(sin(phase * 2.0))
+	var stop_tug: float = 4.0 * player.run_stop_amount * (1.0 - player.run_stop_amount)
+	if stop_tug > 0.001:
+		forward = forward.lerp(player.run_stop_forward, 0.72).normalized()
+		right = Vector2(-forward.y, forward.x)
 
 	var body_center: Vector2 = -forward * (5.0 + 4.0 * run_blend)
 	var head_center: Vector2 = forward * (8.0 + 9.0 * run_blend)
+	body_center += forward * stop_tug * 3.5
+	head_center += forward * stop_tug * 8.5
 	head_center += right * step_wave * 1.8 * moving
 	var bounce: float = cadence * (1.4 + 1.8 * run_blend) * moving
 	body_center -= forward * bounce * 0.25
@@ -32,6 +38,22 @@ func _draw() -> void:
 	var leg_side: float = 10.0
 	var left_leg: Vector2 = body_center - forward * 15.0 - right * leg_side + forward * step_wave * stride
 	var right_leg: Vector2 = body_center - forward * 15.0 + right * leg_side + forward * opposite * stride
+	var left_arm: Vector2 = body_center - right * 27.0 - forward * (step_wave * (5.0 + 6.0 * run_blend) * moving)
+	var right_arm: Vector2 = body_center + right * 27.0 + forward * (step_wave * (5.0 + 6.0 * run_blend) * moving)
+
+	if player.ragdoll_blend > 0.0 and player.rag_positions.size() == 6:
+		var blend: float = player.ragdoll_blend
+		head_center = head_center.lerp(player.rag_positions[player.PART_HEAD], blend)
+		body_center = body_center.lerp(player.rag_positions[player.PART_BODY], blend)
+		left_arm = left_arm.lerp(player.rag_positions[player.PART_LEFT_ARM], blend)
+		right_arm = right_arm.lerp(player.rag_positions[player.PART_RIGHT_ARM], blend)
+		left_leg = left_leg.lerp(player.rag_positions[player.PART_LEFT_LEG], blend)
+		right_leg = right_leg.lerp(player.rag_positions[player.PART_RIGHT_LEG], blend)
+		var loose_forward: Vector2 = (head_center - body_center).normalized()
+		if loose_forward.length_squared() > 0.1:
+			forward = forward.lerp(loose_forward, blend).normalized()
+			right = Vector2(-forward.y, forward.x)
+
 	_draw_limb(left_leg, forward, 8.0, Color("#303844"), Color("#f5eee3"))
 	_draw_limb(right_leg, forward, 8.0, Color("#303844"), Color("#f5eee3"))
 
@@ -40,9 +62,6 @@ func _draw() -> void:
 	draw_circle(body_center, 22.0, Color("#16a9bd"))
 	draw_arc(body_center, 18.0, 0.0, TAU, 28, Color(0.57, 0.96, 1.0, 0.35), 2.0)
 
-	var arm_swing: float = step_wave * (5.0 + 6.0 * run_blend) * moving
-	var left_arm: Vector2 = body_center - right * 27.0 - forward * arm_swing
-	var right_arm: Vector2 = body_center + right * 27.0 + forward * arm_swing
 	_draw_arm(left_arm, right * -1.0, Color("#d99062"))
 	_draw_arm(right_arm, right, Color("#d99062"))
 

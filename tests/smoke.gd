@@ -26,6 +26,16 @@ func _init() -> void:
 		push_error("DoodlePlayer was not created")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.0.1 smoke test passed")
+	player.trigger_ragdoll(Vector2(390, 0))
+	if not player.ragdoll_active or player.rag_positions.size() != 6:
+		push_error("Ragdoll did not initialise all six procedural body parts")
+		quit(1)
+		return
+	for frame in 190:
+		await physics_frame
+	if player.ragdoll_active:
+		push_error("Ragdoll did not recover into controlled movement")
+		quit(1)
+		return
+	print("4TH HEAVEN v0.0.2 movement and ragdoll smoke test passed")
 	quit(0)
-

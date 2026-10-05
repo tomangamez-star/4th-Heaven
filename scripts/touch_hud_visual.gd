@@ -8,6 +8,7 @@ func _draw() -> void:
 	var jc: Vector2 = controls.joystick_center
 	var jk: Vector2 = controls.joystick_knob
 	var rc: Vector2 = controls.run_center
+	var rag: Vector2 = controls.ragdoll_center
 	draw_circle(jc, 86.0, Color(0.035, 0.045, 0.055, 0.34))
 	draw_circle(jc, 84.0, Color(0.84, 0.94, 0.95, 0.10), false, 3.0)
 	draw_circle(jk, 37.0, Color(0.87, 0.96, 0.97, 0.31))
@@ -23,3 +24,11 @@ func _draw() -> void:
 	draw_line(rc + Vector2(0, -6), rc + Vector2(-20, -1), ink, 6.0, true)
 	draw_line(rc + Vector2(-3, 4), rc + Vector2(-22, 23), ink, 7.0, true)
 	draw_line(rc + Vector2(-3, 3), rc + Vector2(19, 20), ink, 7.0, true)
+
+	# Temporary physics-test button: a small impact burst above Run.
+	draw_circle(rag, 45.0, Color(0.14, 0.07, 0.06, 0.43))
+	draw_circle(rag, 43.0, Color(1.0, 0.66, 0.36, 0.24), false, 3.0)
+	draw_circle(rag, 10.0, Color(1.0, 0.82, 0.54, 0.88))
+	for angle in range(0, 360, 45):
+		var direction := Vector2.RIGHT.rotated(deg_to_rad(float(angle)))
+		draw_line(rag + direction * 16.0, rag + direction * 29.0, Color(1.0, 0.82, 0.54, 0.82), 4.0, true)

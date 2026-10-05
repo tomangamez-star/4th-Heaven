@@ -2,11 +2,14 @@ extends CanvasLayer
 
 var movement_vector := Vector2.ZERO
 var run_pressed := false
+var ragdoll_requested := false
 var joystick_touch := -1
 var run_touch := -1
+var ragdoll_touch := -1
 var joystick_center := Vector2.ZERO
 var joystick_knob := Vector2.ZERO
 var run_center := Vector2.ZERO
+var ragdoll_center := Vector2.ZERO
 var viewport_size := Vector2(1280, 720)
 const HudScript = preload("res://scripts/touch_hud_visual.gd")
 
@@ -29,6 +32,7 @@ func _reflow() -> void:
 	if joystick_touch < 0:
 		joystick_knob = joystick_center
 	run_center = Vector2(viewport_size.x - 120, viewport_size.y - 125)
+	ragdoll_center = Vector2(viewport_size.x - 120, viewport_size.y - 265)
 	if is_instance_valid(hud):
 		hud.queue_redraw()
 
@@ -38,6 +42,9 @@ func _input(event: InputEvent) -> void:
 			if event.position.x < viewport_size.x * 0.48 and joystick_touch < 0:
 				joystick_touch = event.index
 				_update_joystick(event.position)
+			elif event.position.distance_to(ragdoll_center) <= RUN_RADIUS * 1.35 and ragdoll_touch < 0:
+				ragdoll_touch = event.index
+				ragdoll_requested = true
 			elif event.position.distance_to(run_center) <= RUN_RADIUS * 1.55 and run_touch < 0:
 				run_touch = event.index
 				run_pressed = true
@@ -49,6 +56,8 @@ func _input(event: InputEvent) -> void:
 			if event.index == run_touch:
 				run_touch = -1
 				run_pressed = false
+			if event.index == ragdoll_touch:
+				ragdoll_touch = -1
 		hud.queue_redraw()
 	elif event is InputEventScreenDrag:
 		if event.index == joystick_touch:
@@ -61,3 +70,9 @@ func _update_joystick(position: Vector2) -> void:
 	movement_vector = delta / JOYSTICK_RADIUS
 	if movement_vector.length() > 1.0:
 		movement_vector = movement_vector.normalized()
+
+func consume_ragdoll_request() -> bool:
+	if not ragdoll_requested:
+		return false
+	ragdoll_requested = false
+	return true
