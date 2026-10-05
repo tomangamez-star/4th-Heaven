@@ -54,21 +54,28 @@ func _draw() -> void:
 			forward = forward.lerp(loose_forward, blend).normalized()
 			right = Vector2(-forward.y, forward.x)
 
+	# Optional rounded doodle connectors remain behind the endpoint circles.
+	if player.show_connectors:
+		draw_line(body_center, left_leg, Color("#303844"), 8.0, true)
+		draw_line(body_center, right_leg, Color("#303844"), 8.0, true)
+		draw_line(body_center, left_arm, player.skin_color.darkened(0.12), 7.0, true)
+		draw_line(body_center, right_arm, player.skin_color.darkened(0.12), 7.0, true)
+
 	_draw_limb(left_leg, forward, 8.0, Color("#303844"), Color("#f5eee3"))
 	_draw_limb(right_leg, forward, 8.0, Color("#303844"), Color("#f5eee3"))
 
 	# Clothing/body remains visible around the dominant head circle.
-	draw_circle(body_center, 24.5, Color("#10242b"))
-	draw_circle(body_center, 22.0, Color("#16a9bd"))
+	draw_circle(body_center, 24.5, player.clothing_dark)
+	draw_circle(body_center, 22.0, player.clothing_color)
 	draw_arc(body_center, 18.0, 0.0, TAU, 28, Color(0.57, 0.96, 1.0, 0.35), 2.0)
 
-	_draw_arm(left_arm, right * -1.0, Color("#d99062"))
-	_draw_arm(right_arm, right, Color("#d99062"))
+	_draw_arm(left_arm, right * -1.0, player.skin_color.darkened(0.11))
+	_draw_arm(right_arm, right, player.skin_color.darkened(0.11))
 
 	# Head, skin rim and directional forehead highlight.
-	draw_circle(head_center, 29.5, Color("#512d20"))
-	draw_circle(head_center, 27.0, Color("#d99668"))
-	draw_circle(head_center + forward * 5.0, 21.5, Color("#e9ab7b"))
+	draw_circle(head_center, 29.5, player.skin_color.darkened(0.55))
+	draw_circle(head_center, 27.0, player.skin_color.darkened(0.15))
+	draw_circle(head_center + forward * 5.0, 21.5, player.skin_color)
 	draw_circle(head_center + forward * 11.0 - right * 7.0, 3.2, Color(1.0, 0.80, 0.62, 0.42))
 	_draw_hair(head_center, forward, right, run_blend, step_wave)
 
@@ -87,8 +94,8 @@ func _draw_arm(center: Vector2, outward: Vector2, skin: Color) -> void:
 	draw_circle(center + outward * 3.0, 2.0, Color(1.0, 0.77, 0.59, 0.36))
 
 func _draw_hair(center: Vector2, forward: Vector2, right: Vector2, run_blend: float, wave: float) -> void:
-	var hair: Color = Color("#15171b")
-	var hair_light: Color = Color("#292b31")
+	var hair: Color = player.hair_color
+	var hair_light: Color = player.hair_highlight
 	# Back mass and chunky anime tufts preserve a readable silhouette at phone scale.
 	draw_circle(center - forward * 5.0, 27.2, hair)
 	for i in 9:

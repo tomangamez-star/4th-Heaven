@@ -1,24 +1,21 @@
-# v0.0.2 — Momentum and Ragdoll Test
+# v0.0.3 — Impact Laboratory
 
-The first 4TH HEAVEN prototype establishes the Android-safe Godot/Web pipeline
-and the game's procedural circular-character language.
-
-Test these points in the browser preview:
-
-1. The head remains the dominant readable circle.
-2. Clothing, arms and alternating legs remain visible from overhead.
-3. Walking feels relaxed rather than like sliding.
-4. Holding Run raises/advances the head and increases stride and arm motion.
-5. Starting, stopping and sharp turns retain a small amount of momentum.
-6. Controls remain reachable and unobtrusive in landscape orientation.
+This patch expands the soil movement lab without changing the approved player
+walking or running values.
 
 ## Added
 
-- A short procedural forward tug after releasing the controls at running speed.
-- Temporary impact-burst button above Run.
-- Physics-driven loose head, body, arms and legs connected by spring constraints.
-- Forward launch, sliding, rotation, damping and automatic recovery.
-- Desktop ragdoll test key: `R`.
+- Rounded arm and leg connectors behind the existing hands and shoes.
+- Top-right comparison toggle for switching connectors on/off live.
+- First wandering NPC with a separate colour palette.
+- Contextual Push control that appears only while the NPC is nearby.
+- Directional medium-force NPC shove using the v0.0.2 ragdoll and recovery.
+- Warm procedural brick wall with solid collision.
+- Stylized wooden physics crate with inertia, friction, rotation and wall impact.
+- Walking pushes the crate gently; running transfers a stronger impulse.
 
-The original v0.0.1 walking, running, acceleration and camera values remain
-unchanged.
+Running into the NPC does not trigger a ragdoll in this build. The player and
+NPC collide normally; deliberate NPC impact remains tied to the Push control.
+
+Desktop test keys: WASD/arrows, Shift/Space to run, R to self-ragdoll, E to
+push when close.

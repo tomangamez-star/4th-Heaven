@@ -28,9 +28,9 @@ jobs:
           mkdir -p build
           "$GODOT" --headless --editor --path . --import --quit
           "$GODOT" --headless --path . --script tests/smoke.gd
-          "$GODOT" --headless --path . --export-debug Android build/4TH-HEAVEN-v0.0.2.apk
-          test -s build/4TH-HEAVEN-v0.0.2.apk
+          "$GODOT" --headless --path . --export-debug Android build/4TH-HEAVEN-v0.0.3.apk
+          test -s build/4TH-HEAVEN-v0.0.3.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: 4TH-HEAVEN-v0.0.2-APK
-          path: build/4TH-HEAVEN-v0.0.2.apk
+          name: 4TH-HEAVEN-v0.0.3-APK
+          path: build/4TH-HEAVEN-v0.0.3.apk

@@ -6,7 +6,9 @@ func _init() -> void:
 		"res://scripts/main.gd",
 		"res://scripts/doodle_player.gd",
 		"res://scripts/doodle_visual.gd",
-		"res://scripts/touch_controls.gd"
+		"res://scripts/touch_controls.gd",
+		"res://scripts/brick_wall.gd",
+		"res://scripts/movable_crate.gd"
 	]
 	for path in required:
 		if not ResourceLoader.exists(path):
@@ -26,6 +28,24 @@ func _init() -> void:
 		push_error("DoodlePlayer was not created")
 		quit(1)
 		return
+	var npc := instance.get_node_or_null("TestNPC")
+	var wall := instance.get_node_or_null("BrickWall")
+	var crate := instance.get_node_or_null("MovableCrate")
+	if npc == null or wall == null or crate == null:
+		push_error("Impact laboratory actors were not created")
+		quit(1)
+		return
+	player.set_connectors_enabled(true)
+	npc.set_connectors_enabled(true)
+	if not player.show_connectors or not npc.show_connectors:
+		push_error("Connector comparison could not be enabled")
+		quit(1)
+		return
+	player.push_target = npc
+	if not player.push_nearby_npc() or not npc.ragdoll_active:
+		push_error("Contextual NPC push did not start the ragdoll")
+		quit(1)
+		return
 	player.trigger_ragdoll(Vector2(390, 0))
 	if not player.ragdoll_active or player.rag_positions.size() != 6:
 		push_error("Ragdoll did not initialise all six procedural body parts")
@@ -37,5 +57,5 @@ func _init() -> void:
 		push_error("Ragdoll did not recover into controlled movement")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.0.2 movement and ragdoll smoke test passed")
+	print("4TH HEAVEN v0.0.3 impact laboratory smoke test passed")
 	quit(0)
