@@ -45,6 +45,9 @@ var route_pause_time := 0.0
 var route_pause_min := 0.35
 var route_pause_max := 1.05
 var world_activity_enabled := true
+var npc_redraw_time := 0.0
+var sidestep_time := 0.0
+var sidestep_direction := 1.0
 var push_target
 var show_connectors := true
 var clothing_color := Color("#16a9bd")
@@ -157,10 +160,12 @@ func configure_route(points: PackedVector2Array, start_index: int, speed_scale: 
 		route_index = (route_index + 1) % route_points.size()
 
 func _update_route_npc(delta: float) -> void:
+	npc_redraw_time -= delta
+	sidestep_time = maxf(0.0, sidestep_time - delta)
 	if route_pause_time > 0.0:
 		route_pause_time -= delta
 		_apply_controlled_motion(Vector2.ZERO, false, delta)
-		visual.queue_redraw()
+		_queue_npc_redraw()
 		return
 	var target := route_points[route_index]
 	var distance := global_position.distance_to(target)
@@ -168,10 +173,11 @@ func _update_route_npc(delta: float) -> void:
 		route_index = (route_index + 1) % route_points.size()
 		route_pause_time = randf_range(route_pause_min, route_pause_max)
 		_apply_controlled_motion(Vector2.ZERO, false, delta)
-		visual.queue_redraw()
+		_queue_npc_redraw()
 		return
 	var desired := global_position.direction_to(target)
 	var avoidance := Vector2.ZERO
+	var blocked_ahead := false
 	for candidate in get_tree().get_nodes_in_group("npc"):
 		if candidate == self or not candidate.visible:
 			continue
@@ -179,9 +185,24 @@ func _update_route_npc(delta: float) -> void:
 		var separation_length: float = separation.length()
 		if separation_length > 0.01 and separation_length < 92.0:
 			avoidance += separation.normalized() * (1.0 - separation_length / 92.0)
-	desired = (desired + avoidance * 0.72).normalized()
+			if desired.dot(-separation.normalized()) > 0.55 and separation_length < 76.0:
+				blocked_ahead = true
+	if blocked_ahead and sidestep_time <= 0.0:
+		sidestep_time = 0.85
+		sidestep_direction = -1.0 if get_instance_id() % 2 == 0 else 1.0
+	var side := Vector2(-desired.y, desired.x) * sidestep_direction
+	var sidestep := side * 0.72 if sidestep_time > 0.0 else Vector2.ZERO
+	desired = (desired + avoidance * 1.15 + sidestep).normalized()
 	_apply_controlled_motion(desired * route_speed_scale, false, delta)
 	_apply_crate_pushes()
+	_queue_npc_redraw()
+
+func _queue_npc_redraw() -> void:
+	# Procedural doodles are expensive on Web; 30 visual updates per second still
+	# reads as smooth while physics and routing continue at the full tick rate.
+	if npc_redraw_time > 0.0:
+		return
+	npc_redraw_time = 1.0 / 30.0
 	visual.queue_redraw()
 
 func set_world_activity(active: bool) -> void:

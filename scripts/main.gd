@@ -7,14 +7,13 @@ const WallScript = preload("res://scripts/brick_wall.gd")
 const CrateScript = preload("res://scripts/movable_crate.gd")
 const StreetWalkScript = preload("res://scripts/street_walk.gd")
 const ActivityManagerScript = preload("res://scripts/world_activity_manager.gd")
+const RoadScript = preload("res://scripts/road_layer.gd")
+const TrafficCarScript = preload("res://scripts/traffic_car.gd")
 
 const NPC_STYLES := [
 	[Color("#d76883"), Color("#46202d"), Color("#633823"), Color("#9d6845")],
 	[Color("#6d8fd5"), Color("#26334e"), Color("#211b18"), Color("#47372c")],
 	[Color("#e1a84b"), Color("#51391d"), Color("#35231c"), Color("#76503a")],
-	[Color("#79ad67"), Color("#263c28"), Color("#712f28"), Color("#a95a4d")],
-	[Color("#9c76c5"), Color("#38274c"), Color("#d3b06e"), Color("#f0d29a")],
-	[Color("#d97755"), Color("#54281e"), Color("#20252e"), Color("#485064")]
 ]
 
 func _ready() -> void:
@@ -25,6 +24,11 @@ func _ready() -> void:
 	var street_walk = StreetWalkScript.new()
 	street_walk.name = "StreetWalk"
 	add_child(street_walk)
+
+	var road = RoadScript.new()
+	road.name = "RoadLayer"
+	add_child(road)
+	road.configure(street_walk.get_route())
 
 	var player = PlayerScript.new()
 	player.name = "DoodlePlayer"
@@ -49,7 +53,7 @@ func _ready() -> void:
 	add_child(controls)
 	player.controls = controls
 
-	var route: PackedVector2Array = street_walk.get_route()
+	var lane_offsets := [-178.0, 178.0, -194.0]
 	for i in NPC_STYLES.size():
 		var npc = PlayerScript.new()
 		npc.name = "PathNPC%d" % (i + 1)
@@ -61,7 +65,13 @@ func _ready() -> void:
 		npc.add_to_group("doodles")
 		npc.add_to_group("npc")
 		add_child(npc)
-		npc.configure_route(route, i * 2, 0.48 + float(i % 3) * 0.07, i % 2 == 1)
+		var pedestrian_route: PackedVector2Array = street_walk.get_pedestrian_route(lane_offsets[i])
+		npc.configure_route(pedestrian_route, i * 3, 0.48 + float(i) * 0.065, i == 1)
+
+	var car = TrafficCarScript.new()
+	car.name = "TrafficCar"
+	add_child(car)
+	car.configure(road.get_vehicle_route(-62.0), 1)
 
 	var activity_manager = ActivityManagerScript.new()
 	activity_manager.name = "WorldActivityManager"

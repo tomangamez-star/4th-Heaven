@@ -1,4 +1,4 @@
-# 4TH HEAVEN v0.1.1 — Living World Test
+# 4TH HEAVEN v0.1.2 — Pedestrian Traffic Test
 
 Procedural pedestrian-world prototype for **4TH HEAVEN**.
 
@@ -13,10 +13,13 @@ Procedural pedestrian-world prototype for **4TH HEAVEN**.
 - Six-part spring ragdoll with launch, roll, slide and automatic recovery
 - Temporary impact-burst test button above Run
 - Permanent rounded doodle limb connectors
-- Six routed NPCs using the same procedural doodle rig
-- Layered street-walk with straight sections, corners and turns
+- Three optimized routed NPCs using the same procedural doodle rig
+- Visible layered sidewalk with straight sections, corners and turns
+- Independent asphalt road layer with its own filter-ready drawing
+- First code-drawn vehicle following an authored traffic route
+- Vehicle corner slowdown and ragdoll impact
 - Different NPC walking speeds, route directions and destination pauses
-- Near-camera activity culling with a safe wake-up buffer
+- Tighter near-camera activity culling for pedestrians and traffic
 - Larger 6000×4000 soil world with smooth bounded camera follow
 - Forced landscape Android presentation
 - Context-sensitive directional NPC shove action

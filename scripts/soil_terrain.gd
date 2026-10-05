@@ -3,6 +3,7 @@ extends Node2D
 var pebbles: Array[Dictionary] = []
 
 func _ready() -> void:
+	z_index = -10
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 4042026
 	for i in 520:

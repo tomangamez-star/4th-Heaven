@@ -10,7 +10,9 @@ func _init() -> void:
 		"res://scripts/brick_wall.gd",
 		"res://scripts/movable_crate.gd",
 		"res://scripts/street_walk.gd",
-		"res://scripts/world_activity_manager.gd"
+		"res://scripts/world_activity_manager.gd",
+		"res://scripts/road_layer.gd",
+		"res://scripts/traffic_car.gd"
 	]
 	for path in required:
 		if not ResourceLoader.exists(path):
@@ -34,13 +36,19 @@ func _init() -> void:
 	var wall := instance.get_node_or_null("BrickWall")
 	var crate := instance.get_node_or_null("MovableCrate")
 	var street := instance.get_node_or_null("StreetWalk")
+	var road := instance.get_node_or_null("RoadLayer")
+	var car := instance.get_node_or_null("TrafficCar")
 	var manager := instance.get_node_or_null("WorldActivityManager")
-	if npc == null or wall == null or crate == null or street == null or manager == null:
+	if npc == null or wall == null or crate == null or street == null or road == null or car == null or manager == null:
 		push_error("Living-world laboratory actors were not created")
 		quit(1)
 		return
-	if get_nodes_in_group("npc").size() != 6 or npc.route_points.size() < 8:
+	if get_nodes_in_group("npc").size() != 3 or npc.route_points.size() < 8:
 		push_error("Routed pedestrian population was not configured")
+		quit(1)
+		return
+	if instance.get_node("SoilTerrain").z_index >= street.z_index or street.z_index >= road.z_index:
+		push_error("Soil, sidewalk and road rendering order is incorrect")
 		quit(1)
 		return
 	if ProjectSettings.get_setting("display/window/handheld/orientation") != 0:
@@ -79,5 +87,9 @@ func _init() -> void:
 		push_error("Ragdoll did not recover into controlled movement")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.1.1 living world smoke test passed")
+	if car.route.size() < 8:
+		push_error("Authored traffic route was not configured")
+		quit(1)
+		return
+	print("4TH HEAVEN v0.1.2 pedestrian traffic smoke test passed")
 	quit(0)

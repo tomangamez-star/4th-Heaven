@@ -13,7 +13,7 @@ func _process(delta: float) -> void:
 	var camera := player.get_node_or_null("PlayerCamera") as Camera2D
 	var zoom := camera.zoom if is_instance_valid(camera) else Vector2.ONE
 	var half_view := viewport_size * 0.5 / zoom
-	var wake_radius := half_view.length() + 430.0
+	var wake_radius := half_view.length() + 180.0
 	active_count = 0
 	for actor in get_tree().get_nodes_in_group("world_activity"):
 		if not is_instance_valid(actor) or not actor.has_method("set_world_activity"):

@@ -1,17 +1,21 @@
-# 4TH HEAVEN v0.1.1 — Living World Test
+# 4TH HEAVEN v0.1.2 — Pedestrian Traffic Test
 
 ## Added
 
-- Large layered pedestrian street-walk with straight sections and rounded turns.
-- Six procedural NPCs with assigned looping routes, opposing directions, varied speeds and pauses.
-- NPC separation steering while keeping real character collisions.
+- Visible layered pedestrian sidewalk with straight sections and rounded turns.
+- Independent asphalt road with curbs and hand-painted lane markings.
+- First procedural top-down vehicle with an authored looping road route.
+- Smooth vehicle steering, corner slowdown and ragdoll impact.
+- Three optimized NPCs on separate sidewalk lanes with varied speeds and pauses.
+- Temporary NPC sidestepping when another pedestrian blocks the lane.
 - Larger 6000×4000 soil testing world and bounded smooth player camera.
-- Near-camera activity manager that sleeps and hides distant NPCs, then wakes them inside a safe viewport buffer.
+- Tighter near-camera activity manager for both pedestrians and traffic.
 
 ## Fixed
 
-- Android now launches in forced landscape orientation.
+- Sidewalk and road now render above the soil instead of being hidden beneath it.
 - Routed NPCs resume their route after push/ragdoll recovery.
+- Procedural NPC visuals update at 30 FPS on Web while physics remains full-rate.
 
 ## Preserved
 
