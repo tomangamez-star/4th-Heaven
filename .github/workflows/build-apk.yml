@@ -73,6 +73,7 @@ jobs:
           install -m 755 "$RUNNER_TEMP/godot/Godot_v${GODOT_VERSION}_linux.x86_64" \
             "$RUNNER_TEMP/godot/godot"
           echo "$RUNNER_TEMP/godot" >> "$GITHUB_PATH"
+          export PATH="$RUNNER_TEMP/godot:$PATH"
 
           curl --fail --location --retry 3 --output "$TEMPLATES_TPZ" \
             "$GODOT_RELEASE_URL/Godot_v${GODOT_VERSION}_export_templates.tpz"
