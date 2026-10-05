@@ -1,6 +1,6 @@
-# 4TH HEAVEN v0.1.0
+# 4TH HEAVEN v0.1.1 — Living World Test
 
-First procedural character movement prototype for **4TH HEAVEN**.
+Procedural pedestrian-world prototype for **4TH HEAVEN**.
 
 ## What is included
 
@@ -13,7 +13,12 @@ First procedural character movement prototype for **4TH HEAVEN**.
 - Six-part spring ragdoll with launch, roll, slide and automatic recovery
 - Temporary impact-burst test button above Run
 - Permanent rounded doodle limb connectors
-- First wandering NPC using the same procedural doodle rig
+- Six routed NPCs using the same procedural doodle rig
+- Layered street-walk with straight sections, corners and turns
+- Different NPC walking speeds, route directions and destination pauses
+- Near-camera activity culling with a safe wake-up buffer
+- Larger 6000×4000 soil world with smooth bounded camera follow
+- Forced landscape Android presentation
 - Context-sensitive directional NPC shove action
 - Stylized procedural brick wall and top-down physics crate
 - Timed two-hand push pose before NPC impact
@@ -32,6 +37,6 @@ HEAVEN preview** or push to `main`.
 
 ## Scope
 
-This build intentionally contains no city, NPCs, vehicles, combat or ragdoll.
-Its only purpose is judging the core doodle silhouette and movement feel before
-the world is built around it.
+This build intentionally contains no buildings, vehicles or full city art. Its
+purpose is proving routed pedestrians, world layering, camera movement and
+near-camera activity management before the city is built around them.

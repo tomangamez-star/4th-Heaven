@@ -8,7 +8,9 @@ func _init() -> void:
 		"res://scripts/doodle_visual.gd",
 		"res://scripts/touch_controls.gd",
 		"res://scripts/brick_wall.gd",
-		"res://scripts/movable_crate.gd"
+		"res://scripts/movable_crate.gd",
+		"res://scripts/street_walk.gd",
+		"res://scripts/world_activity_manager.gd"
 	]
 	for path in required:
 		if not ResourceLoader.exists(path):
@@ -28,11 +30,21 @@ func _init() -> void:
 		push_error("DoodlePlayer was not created")
 		quit(1)
 		return
-	var npc := instance.get_node_or_null("TestNPC")
+	var npc := instance.get_node_or_null("PathNPC2")
 	var wall := instance.get_node_or_null("BrickWall")
 	var crate := instance.get_node_or_null("MovableCrate")
-	if npc == null or wall == null or crate == null:
-		push_error("Impact laboratory actors were not created")
+	var street := instance.get_node_or_null("StreetWalk")
+	var manager := instance.get_node_or_null("WorldActivityManager")
+	if npc == null or wall == null or crate == null or street == null or manager == null:
+		push_error("Living-world laboratory actors were not created")
+		quit(1)
+		return
+	if get_nodes_in_group("npc").size() != 6 or npc.route_points.size() < 8:
+		push_error("Routed pedestrian population was not configured")
+		quit(1)
+		return
+	if ProjectSettings.get_setting("display/window/handheld/orientation") != 0:
+		push_error("Landscape orientation is not forced")
 		quit(1)
 		return
 	if not player.show_connectors or not npc.show_connectors:
@@ -67,5 +79,5 @@ func _init() -> void:
 		push_error("Ragdoll did not recover into controlled movement")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.1.0 native foundation smoke test passed")
+	print("4TH HEAVEN v0.1.1 living world smoke test passed")
 	quit(0)

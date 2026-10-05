@@ -38,6 +38,13 @@ var is_npc := false
 var home_position := Vector2.ZERO
 var ai_direction := Vector2.ZERO
 var ai_change_timer := 0.0
+var route_points := PackedVector2Array()
+var route_index := 0
+var route_speed_scale := 0.58
+var route_pause_time := 0.0
+var route_pause_min := 0.35
+var route_pause_max := 1.05
+var world_activity_enabled := true
 var push_target
 var show_connectors := true
 var clothing_color := Color("#16a9bd")
@@ -63,6 +70,8 @@ func _ready() -> void:
 	collider.shape = shape
 	add_child(collider)
 	z_index = 10
+	if is_npc:
+		add_to_group("world_activity")
 
 func _physics_process(delta: float) -> void:
 	if not is_npc and ((is_instance_valid(controls) and controls.consume_ragdoll_request()) or Input.is_action_just_pressed("ragdoll")):
@@ -121,6 +130,9 @@ func _physics_process(delta: float) -> void:
 	visual.queue_redraw()
 
 func _update_npc(delta: float) -> void:
+	if route_points.size() > 1:
+		_update_route_npc(delta)
+		return
 	ai_change_timer -= delta
 	if ai_change_timer <= 0.0:
 		ai_change_timer = 1.35 + randf() * 1.65
@@ -133,6 +145,53 @@ func _update_npc(delta: float) -> void:
 	_apply_controlled_motion(ai_direction * 0.58, false, delta)
 	_apply_crate_pushes()
 	visual.queue_redraw()
+
+func configure_route(points: PackedVector2Array, start_index: int, speed_scale: float, reverse: bool = false) -> void:
+	route_points = points.duplicate()
+	if reverse:
+		route_points.reverse()
+	route_index = posmod(start_index, route_points.size()) if not route_points.is_empty() else 0
+	route_speed_scale = clampf(speed_scale, 0.38, 0.82)
+	if not route_points.is_empty():
+		global_position = route_points[route_index]
+		route_index = (route_index + 1) % route_points.size()
+
+func _update_route_npc(delta: float) -> void:
+	if route_pause_time > 0.0:
+		route_pause_time -= delta
+		_apply_controlled_motion(Vector2.ZERO, false, delta)
+		visual.queue_redraw()
+		return
+	var target := route_points[route_index]
+	var distance := global_position.distance_to(target)
+	if distance <= 18.0:
+		route_index = (route_index + 1) % route_points.size()
+		route_pause_time = randf_range(route_pause_min, route_pause_max)
+		_apply_controlled_motion(Vector2.ZERO, false, delta)
+		visual.queue_redraw()
+		return
+	var desired := global_position.direction_to(target)
+	var avoidance := Vector2.ZERO
+	for candidate in get_tree().get_nodes_in_group("npc"):
+		if candidate == self or not candidate.visible:
+			continue
+		var separation: Vector2 = global_position - candidate.global_position
+		var separation_length: float = separation.length()
+		if separation_length > 0.01 and separation_length < 92.0:
+			avoidance += separation.normalized() * (1.0 - separation_length / 92.0)
+	desired = (desired + avoidance * 0.72).normalized()
+	_apply_controlled_motion(desired * route_speed_scale, false, delta)
+	_apply_crate_pushes()
+	visual.queue_redraw()
+
+func set_world_activity(active: bool) -> void:
+	if not is_npc or world_activity_enabled == active:
+		return
+	world_activity_enabled = active
+	visible = active
+	set_physics_process(active)
+	if not active:
+		velocity = Vector2.ZERO
 
 func _apply_controlled_motion(movement_input: Vector2, wants_run: bool, delta: float) -> void:
 	input_strength = clampf(movement_input.length(), 0.0, 1.0)

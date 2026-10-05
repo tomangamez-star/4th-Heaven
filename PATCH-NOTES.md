@@ -1,31 +1,21 @@
-# v0.1.0 — Native Foundation Milestone
+# 4TH HEAVEN v0.1.1 — Living World Test
 
-This milestone prepares the same 4TH HEAVEN build for direct Web-versus-APK
-performance comparison while cleaning up the Impact Laboratory presentation.
+## Added
 
-## Presentation fixes
+- Large layered pedestrian street-walk with straight sections and rounded turns.
+- Six procedural NPCs with assigned looping routes, opposing directions, varied speeds and pauses.
+- NPC separation steering while keeping real character collisions.
+- Larger 6000×4000 soil testing world and bounded smooth player camera.
+- Near-camera activity manager that sleeps and hides distant NPCs, then wakes them inside a safe viewport buffer.
 
-- Doodle limb connectors are now permanent and the comparison toggle is gone.
-- Player and NPC collision radius now matches their visible footprint, stopping
-  ordinary head/body overlap.
-- The short crate always renders below doodle characters.
-- Brick rows are trimmed to remain inside the wall's already-correct collider.
-- Player temporarily takes interaction depth only during the push pose.
+## Fixed
 
-## Push animation
+- Android now launches in forced landscape orientation.
+- Routed NPCs resume their route after push/ragdoll recovery.
 
-- Push now begins with a quick forward lean and two-hand extension.
-- NPC impact occurs at visual contact instead of immediately on button press.
-- Arms retract before normal movement control returns.
-- Running into an NPC still causes only normal physical collision.
+## Preserved
 
-## Android export repair
-
-- Installs and configures Java 17.
-- Installs Android command-line tools, platform 34 and build-tools 34.0.0.
-- Configures Godot's Android SDK and Java SDK paths.
-- Creates a temporary debug signing keystore on the runner.
-- Validates the exported APK archive before uploading the artifact.
-
-The approved v0.0.1 walking and running values remain unchanged. No speculative
-performance reduction was applied before testing the native APK.
+- Original player walk/run animation and handling.
+- Six-part connected ragdoll system.
+- Timed two-hand contextual NPC push.
+- Physical crate and brick wall laboratory objects.
