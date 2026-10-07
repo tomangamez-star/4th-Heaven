@@ -51,6 +51,30 @@ func _init() -> void:
 		push_error("Soil, sidewalk and road rendering order is incorrect")
 		quit(1)
 		return
+	# Regression guard for the blank-opening-screen failure: the road, player,
+	# pedestrians, car and both props must all begin inside or just beyond the
+	# first landscape camera view.
+	var opening_half_view := Vector2(1280, 720) * 0.5 / 1.08
+	var opening_margin := Vector2(120, 120)
+	var opening_bounds := Rect2(-opening_half_view - opening_margin, (opening_half_view + opening_margin) * 2.0)
+	if not opening_bounds.has_point(player.global_position):
+		push_error("Player is outside the opening camera")
+		quit(1)
+		return
+	for node in [npc, car, wall, crate]:
+		if not opening_bounds.has_point(node.global_position):
+			push_error("Opening actor is outside the camera: " + node.name)
+			quit(1)
+			return
+	var route_crosses_opening := false
+	for point in road.route:
+		if opening_bounds.has_point(point):
+			route_crosses_opening = true
+			break
+	if not route_crosses_opening:
+		push_error("Road does not cross the opening camera")
+		quit(1)
+		return
 	if ProjectSettings.get_setting("display/window/handheld/orientation") != 0:
 		push_error("Landscape orientation is not forced")
 		quit(1)
@@ -91,5 +115,5 @@ func _init() -> void:
 		push_error("Authored traffic route was not configured")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.1.2 pedestrian traffic smoke test passed")
+	print("4TH HEAVEN v0.1.3 visible-world smoke test passed")
 	quit(0)

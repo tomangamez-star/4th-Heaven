@@ -1,17 +1,24 @@
 extends Node2D
 
 var route := PackedVector2Array([
-	Vector2(-1180, 340),
-	Vector2(-720, 340),
-	Vector2(-430, 140),
-	Vector2(-430, -360),
-	Vector2(-120, -610),
-	Vector2(520, -610),
-	Vector2(980, -250),
-	Vector2(980, 330),
-	Vector2(570, 610),
-	Vector2(-250, 610),
-	Vector2(-720, 340)
+	# The opening stretch deliberately crosses the spawn camera. Keeping several
+	# route points here also lets pedestrians and traffic begin on-screen.
+	Vector2(-1260, -178),
+	Vector2(-840, -178),
+	Vector2(-420, -178),
+	Vector2(0, -178),
+	Vector2(420, -178),
+	Vector2(840, -178),
+	Vector2(1260, -178),
+	Vector2(1500, 120),
+	Vector2(1500, 760),
+	Vector2(1180, 1040),
+	Vector2(600, 1040),
+	Vector2(0, 1040),
+	Vector2(-600, 1040),
+	Vector2(-1180, 1040),
+	Vector2(-1500, 760),
+	Vector2(-1500, 120)
 ])
 
 func _ready() -> void:

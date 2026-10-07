@@ -38,14 +38,16 @@ func _ready() -> void:
 
 	var camera := Camera2D.new()
 	camera.name = "PlayerCamera"
+	camera.enabled = true
 	camera.position_smoothing_enabled = true
 	camera.position_smoothing_speed = 7.0
-	camera.zoom = Vector2(1.18, 1.18)
+	camera.zoom = Vector2(1.08, 1.08)
 	camera.limit_left = -2850
 	camera.limit_right = 2850
 	camera.limit_top = -1850
 	camera.limit_bottom = 1850
 	player.add_child(camera)
+	camera.make_current()
 
 	var controls = ControlsScript.new()
 	controls.name = "TouchControls"
@@ -53,7 +55,10 @@ func _ready() -> void:
 	add_child(controls)
 	player.controls = controls
 
-	var lane_offsets := [-178.0, 178.0, -194.0]
+	var lane_offsets := [178.0, 178.0, -178.0]
+	# NPC 2 follows a reversed copy, so index 11 maps back to the same opening
+	# stretch while still making that pedestrian travel against the others.
+	var opening_route_indices := [2, 11, 3]
 	for i in NPC_STYLES.size():
 		var npc = PlayerScript.new()
 		npc.name = "PathNPC%d" % (i + 1)
@@ -66,12 +71,12 @@ func _ready() -> void:
 		npc.add_to_group("npc")
 		add_child(npc)
 		var pedestrian_route: PackedVector2Array = street_walk.get_pedestrian_route(lane_offsets[i])
-		npc.configure_route(pedestrian_route, i * 3, 0.48 + float(i) * 0.065, i == 1)
+		npc.configure_route(pedestrian_route, opening_route_indices[i], 0.48 + float(i) * 0.065, i == 1)
 
 	var car = TrafficCarScript.new()
 	car.name = "TrafficCar"
 	add_child(car)
-	car.configure(road.get_vehicle_route(-62.0), 1)
+	car.configure(road.get_vehicle_route(-62.0), 3)
 
 	var activity_manager = ActivityManagerScript.new()
 	activity_manager.name = "WorldActivityManager"
@@ -81,9 +86,16 @@ func _ready() -> void:
 	var wall = WallScript.new()
 	wall.name = "BrickWall"
 	add_child(wall)
-	wall.global_position = Vector2(250, -265)
+	wall.global_position = Vector2(285, 160)
 
 	var crate = CrateScript.new()
 	crate.name = "MovableCrate"
 	add_child(crate)
-	crate.global_position = Vector2(180, 185)
+	crate.global_position = Vector2(-245, 145)
+
+	# Procedural CanvasItems must receive an initial draw before any movement.
+	# This is especially important on the Web renderer where the first frame can
+	# otherwise contain only the terrain and CanvasLayer HUD.
+	player.visual.queue_redraw()
+	street_walk.queue_redraw()
+	road.queue_redraw()

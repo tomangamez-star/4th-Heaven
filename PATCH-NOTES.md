@@ -1,4 +1,22 @@
-# 4TH HEAVEN v0.1.2 — Pedestrian Traffic Test
+# 4TH HEAVEN v0.1.3 — Visible World Fix
+
+## Fixed
+
+- Rebuilt the opening route so the road and sidewalk cross the spawn camera.
+- Spawned three pedestrians and the first car on the visible opening stretch.
+- Repositioned the wall and crate inside the initial landscape view.
+- Explicitly activated the player camera and forced the first procedural draw.
+- Bumped the Web cache key so phones cannot reuse the empty v0.1.2 export.
+- Added a regression test that fails if the opening scene becomes empty again.
+
+## Preserved
+
+- Approved player movement, stopping, connected limbs and ragdoll behaviour.
+- NPC lane walking, avoidance, contextual push and vehicle impact physics.
+
+---
+
+## Previous: v0.1.2 — Pedestrian Traffic Test
 
 ## Added
 

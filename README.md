@@ -1,4 +1,4 @@
-# 4TH HEAVEN v0.1.2 — Pedestrian Traffic Test
+# 4TH HEAVEN v0.1.3 — Visible World Fix
 
 Procedural pedestrian-world prototype for **4TH HEAVEN**.
 
@@ -17,6 +17,7 @@ Procedural pedestrian-world prototype for **4TH HEAVEN**.
 - Visible layered sidewalk with straight sections, corners and turns
 - Independent asphalt road layer with its own filter-ready drawing
 - First code-drawn vehicle following an authored traffic route
+- Guaranteed populated opening camera with the road, pedestrians, car and props
 - Vehicle corner slowdown and ragdoll impact
 - Different NPC walking speeds, route directions and destination pauses
 - Tighter near-camera activity culling for pedestrians and traffic
@@ -40,6 +41,6 @@ HEAVEN preview** or push to `main`.
 
 ## Scope
 
-This build intentionally contains no buildings, vehicles or full city art. Its
+This build intentionally contains no buildings or full city art. Its
 purpose is proving routed pedestrians, world layering, camera movement and
 near-camera activity management before the city is built around them.
