@@ -113,8 +113,15 @@ func _draw() -> void:
 		var bubble := head_center + right * 30.0 + forward * 25.0
 		draw_circle(bubble, 10.0, Color(0.96, 0.93, 0.82, 0.86))
 		draw_circle(bubble + Vector2(-11, 9), 4.0, Color(0.96, 0.93, 0.82, 0.72))
-		for x in [-4.0, 0.0, 4.0]:
-			draw_circle(bubble + Vector2(x, 0), 1.4, Color(0.28, 0.24, 0.20, 0.75))
+		var dot_count := get_talk_dot_count(Time.get_ticks_msec())
+		var first_x := -float(dot_count - 1) * 2.2
+		for dot in dot_count:
+			draw_circle(bubble + Vector2(first_x + float(dot) * 4.4, 0), 1.4, Color(0.28, 0.24, 0.20, 0.75))
+
+func get_talk_dot_count(milliseconds: int) -> int:
+	# Classic (...) -> (..) -> (.) -> (..) -> (...) conversation rhythm.
+	var sequence := [3, 2, 1, 2, 3]
+	return sequence[(milliseconds / 340) % sequence.size()]
 
 func _draw_limb(center: Vector2, forward: Vector2, radius: float, cloth: Color, shoe: Color) -> void:
 	draw_circle(center, radius + 2.0, Color(0.12, 0.10, 0.10, 0.42))

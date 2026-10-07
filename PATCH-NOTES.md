@@ -1,4 +1,24 @@
-# 4TH HEAVEN v0.1.5 — Living Streets Foundation
+# 4TH HEAVEN v0.1.6 — Street-Life Correction
+
+## Corrected
+
+- Replaced fixed prop coordinates with route-aware open-space placement.
+- Reduced the furniture count to three benches, one shelter, three lights, one bin and one bus sign.
+- Kept both pedestrian lanes clear and moved social gathering points entirely off the road.
+- Added collisions to benches, shelter walls, bins, lights and signs.
+- Split the shelter into a below-character base and above-character transparent blue-glass roof.
+- Replaced the unclear sign blocks with a recognizable bus silhouette.
+- Combined each pole-and-top shadow into one silhouette to remove transparent overlap seams.
+- Animated the full-sized conversation bubble through (...) → (..) → (.) → (..) → (...).
+
+## Preserved
+
+- The accepted directional late-afternoon shadows for future day/night lighting.
+- Existing movement, ragdolls, traffic, road scale, NPC path recovery and performance budget.
+
+---
+
+## Previous: v0.1.5 — Living Streets Foundation
 
 ## Added
 

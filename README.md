@@ -1,4 +1,4 @@
-# 4TH HEAVEN v0.1.5 — Living Streets Foundation
+# 4TH HEAVEN v0.1.6 — Street-Life Correction
 
 Procedural pedestrian-world prototype for **4TH HEAVEN**.
 
@@ -22,7 +22,11 @@ Procedural pedestrian-world prototype for **4TH HEAVEN**.
 - Six pedestrians per camera-sized city segment
 - Player-aware pedestrian stopping and soft side-step avoidance
 - NPC walk, wait, sit, talk and gathering behaviour states
-- Benches, bus stops, streetlights, signs and bins along the central loop
+- Sparse route-aware benches, bus shelter, streetlights, bus sign and bin
+- Physical collisions on every street prop and an open-front bus shelter
+- Transparent blue shelter roof layered above visible doodles
+- Classic animated conversation dots: (...) → (..) → (.) → (..) → (...)
+- Unified prop-shadow silhouettes with the accepted directional sunlight
 - Shared late-afternoon sunlight direction for characters, cars and street props
 - Reusable behaviour destinations that return NPCs to their sidewalk routes
 - Clean central loop with temporary laboratory props removed

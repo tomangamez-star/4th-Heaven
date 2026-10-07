@@ -11,6 +11,7 @@ func _init() -> void:
 		"res://scripts/world_activity_manager.gd",
 		"res://scripts/world_light_manager.gd",
 		"res://scripts/street_furniture.gd",
+		"res://scripts/shelter_roof_overlay.gd",
 		"res://scripts/road_layer.gd",
 		"res://scripts/traffic_car.gd"
 	]
@@ -87,8 +88,23 @@ func _init() -> void:
 		push_error("Permanent doodle connectors were not enabled")
 		quit(1)
 		return
-	if furniture.get_sit_spots().size() < 8 or furniture.get_gather_spots().size() < 3:
+	if furniture.get_sit_spots().size() != 6 or furniture.get_gather_spots().size() != 2:
 		push_error("Street furniture behaviour destinations were not configured")
+		quit(1)
+		return
+	if furniture.get_prop_count() != 9:
+		push_error("Corrected sparse furniture budget was not applied")
+		quit(1)
+		return
+	for point in furniture.bench_spots + furniture.bus_stop_spots + furniture.gather_spots:
+		if furniture.is_point_on_road(point):
+			push_error("Furniture or social destination was placed on the road")
+			quit(1)
+			return
+	var collisions := furniture.get_node_or_null("FurnitureCollisions")
+	var roof := furniture.get_node_or_null("GlassShelterRoof")
+	if collisions == null or collisions.get_child_count() < 10 or roof == null or roof.z_index <= player.z_index:
+		push_error("Furniture collisions or above-doodle glass roof were not created")
 		quit(1)
 		return
 	if light.get_shadow_offset(10.0).length() < 10.0:
@@ -100,6 +116,13 @@ func _init() -> void:
 	var talker_b := instance.get_node_or_null("PathNPC6")
 	if not sitter.is_sitting or sitter.behavior_state != "sit" or talker_a.behavior_state != "talk" or talker_b.behavior_state != "talk":
 		push_error("Opening sit and talk behaviours were not started")
+		quit(1)
+		return
+	var bubble_sequence := []
+	for sample in [0, 340, 680, 1020, 1360]:
+		bubble_sequence.append(talker_a.visual.get_talk_dot_count(sample))
+	if bubble_sequence != [3, 2, 1, 2, 3]:
+		push_error("Conversation bubble dot animation is incorrect")
 		quit(1)
 		return
 	player.push_target = npc
@@ -144,5 +167,5 @@ func _init() -> void:
 		push_error("Pedestrian did not stop before pushing into the player")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.1.5 living-streets smoke test passed")
+	print("4TH HEAVEN v0.1.6 street-life correction smoke test passed")
 	quit(0)

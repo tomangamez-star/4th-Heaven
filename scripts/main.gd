@@ -41,6 +41,7 @@ func _ready() -> void:
 
 	var furniture = StreetFurnitureScript.new()
 	furniture.name = "StreetFurniture"
+	furniture.configure(street_walk.get_route())
 	add_child(furniture)
 
 	var player = PlayerScript.new()
