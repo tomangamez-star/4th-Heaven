@@ -3,12 +3,12 @@ extends Node2D
 const PlayerScript = preload("res://scripts/doodle_player.gd")
 const TerrainScript = preload("res://scripts/soil_terrain.gd")
 const ControlsScript = preload("res://scripts/touch_controls.gd")
-const WallScript = preload("res://scripts/brick_wall.gd")
-const CrateScript = preload("res://scripts/movable_crate.gd")
 const StreetWalkScript = preload("res://scripts/street_walk.gd")
 const ActivityManagerScript = preload("res://scripts/world_activity_manager.gd")
 const RoadScript = preload("res://scripts/road_layer.gd")
 const TrafficCarScript = preload("res://scripts/traffic_car.gd")
+const WorldLightScript = preload("res://scripts/world_light_manager.gd")
+const StreetFurnitureScript = preload("res://scripts/street_furniture.gd")
 
 const NPC_STYLES := [
 	[Color("#d76883"), Color("#46202d"), Color("#633823"), Color("#9d6845")],
@@ -26,6 +26,10 @@ func _ready() -> void:
 	terrain.name = "SoilTerrain"
 	add_child(terrain)
 
+	var world_light = WorldLightScript.new()
+	world_light.name = "WorldLightManager"
+	add_child(world_light)
+
 	var street_walk = StreetWalkScript.new()
 	street_walk.name = "StreetWalk"
 	add_child(street_walk)
@@ -34,6 +38,10 @@ func _ready() -> void:
 	road.name = "RoadLayer"
 	add_child(road)
 	road.configure(street_walk.get_route())
+
+	var furniture = StreetFurnitureScript.new()
+	furniture.name = "StreetFurniture"
+	add_child(furniture)
 
 	var player = PlayerScript.new()
 	player.name = "DoodlePlayer"
@@ -65,6 +73,7 @@ func _ready() -> void:
 	# budget for one camera-sized city segment.
 	var lane_offsets := [235.0, 315.0, -235.0, -315.0, 235.0, 315.0]
 	var opening_route_indices := [2, 13, 3, 11, 4, 10]
+	var segment_npcs: Array = []
 	for i in NPCS_PER_SEGMENT:
 		var npc = PlayerScript.new()
 		npc.name = "PathNPC%d" % (i + 1)
@@ -79,6 +88,15 @@ func _ready() -> void:
 		var pedestrian_route: PackedVector2Array = street_walk.get_pedestrian_route(lane_offsets[i])
 		var reverse_route := i % 2 == 1
 		npc.configure_route(pedestrian_route, opening_route_indices[i], 0.45 + float(i % 3) * 0.065, reverse_route)
+		npc.configure_behavior_spots(furniture.get_sit_spots(), furniture.get_gather_spots(), i)
+		segment_npcs.append(npc)
+
+	# Make the living-street behaviours immediately visible in the first segment.
+	var seats := furniture.get_sit_spots()
+	var gatherings := furniture.get_gather_spots()
+	segment_npcs[3].start_behavior_at("sit", seats[0], Vector2(0, -1))
+	segment_npcs[4].start_behavior_at("talk", gatherings[0] + Vector2(-40, 0), Vector2.RIGHT)
+	segment_npcs[5].start_behavior_at("talk", gatherings[0] + Vector2(40, 0), Vector2.LEFT)
 
 	var car = TrafficCarScript.new()
 	car.name = "TrafficCar"
@@ -90,19 +108,10 @@ func _ready() -> void:
 	activity_manager.player = player
 	add_child(activity_manager)
 
-	var wall = WallScript.new()
-	wall.name = "BrickWall"
-	add_child(wall)
-	wall.global_position = Vector2(285, 160)
-
-	var crate = CrateScript.new()
-	crate.name = "MovableCrate"
-	add_child(crate)
-	crate.global_position = Vector2(-245, 145)
-
 	# Procedural CanvasItems must receive an initial draw before any movement.
 	# This is especially important on the Web renderer where the first frame can
 	# otherwise contain only the terrain and CanvasLayer HUD.
 	player.visual.queue_redraw()
 	street_walk.queue_redraw()
 	road.queue_redraw()
+	furniture.queue_redraw()

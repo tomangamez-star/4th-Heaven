@@ -8,11 +8,15 @@ var heading := Vector2.RIGHT
 var current_speed := 0.0
 var world_activity_enabled := true
 var impact_cooldown := {}
+var light_manager
 
 func _ready() -> void:
 	z_index = 6
 	# Preserve the accepted design while correcting its scale against a doodle.
 	scale = Vector2(1.25, 1.25)
+	var lights := get_tree().get_nodes_in_group("world_light")
+	if not lights.is_empty():
+		light_manager = lights[0]
 	add_to_group("world_activity")
 	var area := Area2D.new()
 	area.name = "ImpactArea"
@@ -71,7 +75,10 @@ func set_world_activity(active: bool) -> void:
 
 func _draw() -> void:
 	# Car faces upward locally; the node rotates along its authored road route.
-	draw_set_transform(Vector2(5, 9), 0.0, Vector2.ONE)
+	var shadow_offset := Vector2(5, 9)
+	if is_instance_valid(light_manager):
+		shadow_offset = light_manager.get_shadow_offset(10.0)
+	draw_set_transform(shadow_offset, 0.0, Vector2.ONE)
 	draw_rect(Rect2(-38, -67, 76, 134), Color(0.06, 0.05, 0.05, 0.30), true)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	for y in [-44.0, 42.0]:

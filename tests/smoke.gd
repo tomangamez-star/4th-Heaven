@@ -7,10 +7,10 @@ func _init() -> void:
 		"res://scripts/doodle_player.gd",
 		"res://scripts/doodle_visual.gd",
 		"res://scripts/touch_controls.gd",
-		"res://scripts/brick_wall.gd",
-		"res://scripts/movable_crate.gd",
 		"res://scripts/street_walk.gd",
 		"res://scripts/world_activity_manager.gd",
+		"res://scripts/world_light_manager.gd",
+		"res://scripts/street_furniture.gd",
 		"res://scripts/road_layer.gd",
 		"res://scripts/traffic_car.gd"
 	]
@@ -33,14 +33,18 @@ func _init() -> void:
 		quit(1)
 		return
 	var npc := instance.get_node_or_null("PathNPC2")
-	var wall := instance.get_node_or_null("BrickWall")
-	var crate := instance.get_node_or_null("MovableCrate")
 	var street := instance.get_node_or_null("StreetWalk")
 	var road := instance.get_node_or_null("RoadLayer")
 	var car := instance.get_node_or_null("TrafficCar")
 	var manager := instance.get_node_or_null("WorldActivityManager")
-	if npc == null or wall == null or crate == null or street == null or road == null or car == null or manager == null:
-		push_error("Living-world laboratory actors were not created")
+	var light := instance.get_node_or_null("WorldLightManager")
+	var furniture := instance.get_node_or_null("StreetFurniture")
+	if npc == null or street == null or road == null or car == null or manager == null or light == null or furniture == null:
+		push_error("Living-street actors were not created")
+		quit(1)
+		return
+	if instance.get_node_or_null("BrickWall") != null or instance.get_node_or_null("MovableCrate") != null:
+		push_error("Temporary laboratory props still exist in the central loop")
 		quit(1)
 		return
 	if get_nodes_in_group("npc").size() != 6 or npc.route_points.size() < 8:
@@ -52,7 +56,7 @@ func _init() -> void:
 		quit(1)
 		return
 	# Regression guard for the blank-opening-screen failure: the road, player,
-	# pedestrians, car and both props must all begin inside or just beyond the
+	# pedestrians and car must all begin inside or just beyond the
 	# first landscape camera view.
 	var opening_half_view := Vector2(1280, 720) * 0.5 / 1.08
 	var opening_margin := Vector2(120, 120)
@@ -61,7 +65,7 @@ func _init() -> void:
 		push_error("Player is outside the opening camera")
 		quit(1)
 		return
-	for node in [npc, car, wall, crate]:
+	for node in [npc, car]:
 		if not opening_bounds.has_point(node.global_position):
 			push_error("Opening actor is outside the camera: " + node.name)
 			quit(1)
@@ -83,8 +87,19 @@ func _init() -> void:
 		push_error("Permanent doodle connectors were not enabled")
 		quit(1)
 		return
-	if crate.z_index >= player.z_index:
-		push_error("Short crate must render below doodle characters")
+	if furniture.get_sit_spots().size() < 8 or furniture.get_gather_spots().size() < 3:
+		push_error("Street furniture behaviour destinations were not configured")
+		quit(1)
+		return
+	if light.get_shadow_offset(10.0).length() < 10.0:
+		push_error("Shared world shadow direction was not configured")
+		quit(1)
+		return
+	var sitter := instance.get_node_or_null("PathNPC4")
+	var talker_a := instance.get_node_or_null("PathNPC5")
+	var talker_b := instance.get_node_or_null("PathNPC6")
+	if not sitter.is_sitting or sitter.behavior_state != "sit" or talker_a.behavior_state != "talk" or talker_b.behavior_state != "talk":
+		push_error("Opening sit and talk behaviours were not started")
 		quit(1)
 		return
 	player.push_target = npc
@@ -129,5 +144,5 @@ func _init() -> void:
 		push_error("Pedestrian did not stop before pushing into the player")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.1.4 central-loop scale smoke test passed")
+	print("4TH HEAVEN v0.1.5 living-streets smoke test passed")
 	quit(0)

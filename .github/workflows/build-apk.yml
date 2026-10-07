@@ -114,14 +114,14 @@ jobs:
           mkdir -p build
           godot --headless --editor --path . --import --quit
           godot --headless --path . --script tests/smoke.gd
-          godot --headless --path . --export-debug Android build/4TH-HEAVEN-v0.1.4.apk
-          test -s build/4TH-HEAVEN-v0.1.4.apk
-          unzip -tq build/4TH-HEAVEN-v0.1.4.apk
+          godot --headless --path . --export-debug Android build/4TH-HEAVEN-v0.1.5.apk
+          test -s build/4TH-HEAVEN-v0.1.5.apk
+          unzip -tq build/4TH-HEAVEN-v0.1.5.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: 4TH-HEAVEN-v0.1.4-APK
-          path: build/4TH-HEAVEN-v0.1.4.apk
+          name: 4TH-HEAVEN-v0.1.5-APK
+          path: build/4TH-HEAVEN-v0.1.5.apk
           if-no-files-found: error
           retention-days: 14

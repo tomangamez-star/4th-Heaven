@@ -1,4 +1,4 @@
-# 4TH HEAVEN v0.1.4 — Central Loop Scale Test
+# 4TH HEAVEN v0.1.5 — Living Streets Foundation
 
 Procedural pedestrian-world prototype for **4TH HEAVEN**.
 
@@ -21,6 +21,11 @@ Procedural pedestrian-world prototype for **4TH HEAVEN**.
 - Properly proportioned two-lane central-loop road and two-person sidewalks
 - Six pedestrians per camera-sized city segment
 - Player-aware pedestrian stopping and soft side-step avoidance
+- NPC walk, wait, sit, talk and gathering behaviour states
+- Benches, bus stops, streetlights, signs and bins along the central loop
+- Shared late-afternoon sunlight direction for characters, cars and street props
+- Reusable behaviour destinations that return NPCs to their sidewalk routes
+- Clean central loop with temporary laboratory props removed
 - Vehicle corner slowdown and ragdoll impact
 - Different NPC walking speeds, route directions and destination pauses
 - Tighter near-camera activity culling for pedestrians and traffic

@@ -1,6 +1,12 @@
 extends Node2D
 
 var player
+var light_manager
+
+func _ready() -> void:
+	var lights := get_tree().get_nodes_in_group("world_light")
+	if not lights.is_empty():
+		light_manager = lights[0]
 
 func _draw() -> void:
 	if not is_instance_valid(player):
@@ -29,7 +35,10 @@ func _draw() -> void:
 	head_center -= forward * bounce * 0.12
 
 	# Soft shadow is grounded independently from the bouncing body.
-	draw_set_transform(Vector2(2, 10), 0.0, Vector2(1, 1))
+	var shadow_offset := Vector2(2, 10)
+	if is_instance_valid(light_manager):
+		shadow_offset = light_manager.get_shadow_offset(8.5)
+	draw_set_transform(shadow_offset, 0.0, Vector2(1, 1))
 	draw_circle(Vector2.ZERO, 30.0, Color(0.10, 0.055, 0.025, 0.26))
 	draw_circle(Vector2.ZERO, 23.0, Color(0.06, 0.035, 0.02, 0.19))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -40,6 +49,15 @@ func _draw() -> void:
 	var right_leg: Vector2 = body_center - forward * 15.0 + right * leg_side + forward * opposite * stride
 	var left_arm: Vector2 = body_center - right * 27.0 - forward * (step_wave * (5.0 + 6.0 * run_blend) * moving)
 	var right_arm: Vector2 = body_center + right * 27.0 + forward * (step_wave * (5.0 + 6.0 * run_blend) * moving)
+
+	if player.is_sitting:
+		# Compressed torso and forward feet make the bench pose readable overhead.
+		body_center -= forward * 4.0
+		head_center -= forward * 2.0
+		left_leg = body_center - forward * 23.0 - right * 14.0
+		right_leg = body_center - forward * 23.0 + right * 14.0
+		left_arm = body_center - right * 24.0
+		right_arm = body_center + right * 24.0
 
 	if player.ragdoll_blend > 0.0 and player.rag_positions.size() == 6:
 		var blend: float = player.ragdoll_blend
@@ -90,6 +108,13 @@ func _draw() -> void:
 	# Tiny direction cue: barely visible while idle, clearer with forward run posture.
 	var cue_alpha: float = 0.12 + 0.12 * run_blend
 	draw_arc(head_center + forward * 10.0, 7.0, forward.angle() - 0.35, forward.angle() + 0.35, 8, Color(0.20, 0.09, 0.05, cue_alpha), 1.6)
+
+	if player.behavior_state == "talk":
+		var bubble := head_center + right * 30.0 + forward * 25.0
+		draw_circle(bubble, 10.0, Color(0.96, 0.93, 0.82, 0.86))
+		draw_circle(bubble + Vector2(-11, 9), 4.0, Color(0.96, 0.93, 0.82, 0.72))
+		for x in [-4.0, 0.0, 4.0]:
+			draw_circle(bubble + Vector2(x, 0), 1.4, Color(0.28, 0.24, 0.20, 0.75))
 
 func _draw_limb(center: Vector2, forward: Vector2, radius: float, cloth: Color, shoe: Color) -> void:
 	draw_circle(center, radius + 2.0, Color(0.12, 0.10, 0.10, 0.42))

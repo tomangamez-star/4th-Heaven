@@ -1,4 +1,29 @@
-# 4TH HEAVEN v0.1.4 — Central Loop Scale Test
+# 4TH HEAVEN v0.1.5 — Living Streets Foundation
+
+## Added
+
+- Code-drawn benches, bus-stop shelters, streetlights, signs and bins.
+- Shared world-light manager with one consistent late-afternoon shadow direction.
+- NPC walk, wait, approach, sit and talk behaviour states.
+- Bench seating and gathering destinations that NPCs can select near their route.
+- An immediately visible sitter and two-person conversation in the opening segment.
+- Sitting pose and small conversation bubble for readable overhead behaviour.
+
+## Changed
+
+- Removed the temporary brick wall and crate from the central-loop district.
+- Doodle and vehicle shadows now use the shared world-light direction.
+- Social NPCs resume their preserved sidewalk route after finishing an activity.
+
+## Preserved
+
+- Six-person segment budget and near-camera activity culling.
+- Road, sidewalk, vehicle and doodle proportions.
+- Movement, ragdolls, contextual push, route recovery and player avoidance.
+
+---
+
+## Previous: v0.1.4 — Central Loop Scale Test
 
 ## Added
 

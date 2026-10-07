@@ -49,6 +49,15 @@ var npc_redraw_time := 0.0
 var sidestep_time := 0.0
 var sidestep_direction := 1.0
 var player_blocked_last_frame := false
+var behavior_state := "walk"
+var behavior_timer := 0.0
+var behavior_cooldown := 4.0
+var behavior_destination := Vector2.ZERO
+var behavior_look_direction := Vector2.DOWN
+var sit_spots := PackedVector2Array()
+var gather_spots := PackedVector2Array()
+var behavior_rng := RandomNumberGenerator.new()
+var is_sitting := false
 var push_target
 var show_connectors := true
 var clothing_color := Color("#16a9bd")
@@ -134,6 +143,10 @@ func _physics_process(delta: float) -> void:
 	visual.queue_redraw()
 
 func _update_npc(delta: float) -> void:
+	behavior_cooldown = maxf(0.0, behavior_cooldown - delta)
+	if behavior_state != "walk":
+		_update_npc_behavior(delta)
+		return
 	if route_points.size() > 1:
 		_update_route_npc(delta)
 		return
@@ -160,6 +173,78 @@ func configure_route(points: PackedVector2Array, start_index: int, speed_scale: 
 		global_position = route_points[route_index]
 		route_index = (route_index + 1) % route_points.size()
 
+func configure_behavior_spots(seats: PackedVector2Array, gatherings: PackedVector2Array, seed_offset: int) -> void:
+	sit_spots = seats.duplicate()
+	gather_spots = gatherings.duplicate()
+	behavior_rng.seed = 401500 + seed_offset * 97
+
+func start_behavior_at(kind: String, destination: Vector2, look_direction: Vector2) -> void:
+	global_position = destination
+	behavior_state = kind
+	behavior_timer = 5.5 + behavior_rng.randf_range(0.0, 2.5)
+	behavior_look_direction = look_direction.normalized() if look_direction.length_squared() > 0.01 else Vector2.DOWN
+	display_facing = behavior_look_direction
+	facing = behavior_look_direction
+	is_sitting = kind == "sit"
+	velocity = Vector2.ZERO
+	if is_instance_valid(visual):
+		visual.queue_redraw()
+
+func _begin_approach(kind: String, destination: Vector2) -> void:
+	behavior_state = "approach_" + kind
+	behavior_destination = destination
+	is_sitting = false
+
+func _update_npc_behavior(delta: float) -> void:
+	if behavior_state.begins_with("approach_"):
+		var distance := global_position.distance_to(behavior_destination)
+		if distance > 15.0:
+			var direction := global_position.direction_to(behavior_destination)
+			_apply_controlled_motion(direction * 0.44, false, delta)
+			_queue_npc_redraw()
+			return
+		behavior_state = behavior_state.trim_prefix("approach_")
+		behavior_timer = behavior_rng.randf_range(3.8, 7.0)
+		behavior_look_direction = Vector2.UP if behavior_state == "sit" else Vector2.RIGHT.rotated(behavior_rng.randf_range(-0.55, 0.55))
+		is_sitting = behavior_state == "sit"
+	behavior_timer -= delta
+	velocity = velocity.move_toward(Vector2.ZERO, DECELERATION * delta)
+	display_facing = display_facing.lerp(behavior_look_direction, 1.0 - exp(-7.0 * delta)).normalized()
+	facing = display_facing
+	_queue_npc_redraw()
+	if behavior_timer <= 0.0:
+		behavior_state = "walk"
+		is_sitting = false
+		behavior_cooldown = behavior_rng.randf_range(5.0, 9.0)
+
+func _nearest_behavior_spot(spots: PackedVector2Array, maximum_distance: float) -> Vector2:
+	var nearest := Vector2(INF, INF)
+	var best_distance := maximum_distance
+	for spot in spots:
+		var distance := global_position.distance_to(spot)
+		if distance < best_distance:
+			best_distance = distance
+			nearest = spot
+	return nearest
+
+func _try_start_route_behavior() -> bool:
+	if behavior_cooldown > 0.0 or behavior_rng.randf() > 0.42:
+		return false
+	if behavior_rng.randf() < 0.46 and not sit_spots.is_empty():
+		var seat := _nearest_behavior_spot(sit_spots, 390.0)
+		if not is_inf(seat.x):
+			_begin_approach("sit", seat)
+			return true
+	if not gather_spots.is_empty():
+		var gathering := _nearest_behavior_spot(gather_spots, 420.0)
+		if not is_inf(gathering.x):
+			var side := -1.0 if get_instance_id() % 2 == 0 else 1.0
+			_begin_approach("talk", gathering + Vector2(side * 36.0, 0))
+			return true
+	behavior_state = "wait"
+	behavior_timer = behavior_rng.randf_range(1.8, 4.0)
+	return true
+
 func _update_route_npc(delta: float) -> void:
 	npc_redraw_time -= delta
 	sidestep_time = maxf(0.0, sidestep_time - delta)
@@ -172,6 +257,10 @@ func _update_route_npc(delta: float) -> void:
 	var distance := global_position.distance_to(target)
 	if distance <= 18.0:
 		route_index = (route_index + 1) % route_points.size()
+		if _try_start_route_behavior():
+			_apply_controlled_motion(Vector2.ZERO, false, delta)
+			_queue_npc_redraw()
+			return
 		route_pause_time = randf_range(route_pause_min, route_pause_max)
 		_apply_controlled_motion(Vector2.ZERO, false, delta)
 		_queue_npc_redraw()
