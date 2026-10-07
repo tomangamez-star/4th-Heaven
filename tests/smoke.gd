@@ -43,7 +43,7 @@ func _init() -> void:
 		push_error("Living-world laboratory actors were not created")
 		quit(1)
 		return
-	if get_nodes_in_group("npc").size() != 3 or npc.route_points.size() < 8:
+	if get_nodes_in_group("npc").size() != 6 or npc.route_points.size() < 8:
 		push_error("Routed pedestrian population was not configured")
 		quit(1)
 		return
@@ -115,5 +115,19 @@ func _init() -> void:
 		push_error("Authored traffic route was not configured")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.1.3 visible-world smoke test passed")
+	if car.scale.x < 1.2 or road.get_vehicle_route().is_empty():
+		push_error("Road and car scale upgrade was not applied")
+		quit(1)
+		return
+	var avoidance_npc := instance.get_node_or_null("PathNPC6")
+	avoidance_npc.velocity = Vector2.ZERO
+	avoidance_npc.global_position = player.global_position - Vector2(0, 68)
+	avoidance_npc.route_points = PackedVector2Array([player.global_position + Vector2(0, 200)])
+	avoidance_npc.route_index = 0
+	avoidance_npc._update_route_npc(1.0 / 60.0)
+	if not avoidance_npc.player_blocked_last_frame or avoidance_npc.velocity.length() > 0.1:
+		push_error("Pedestrian did not stop before pushing into the player")
+		quit(1)
+		return
+	print("4TH HEAVEN v0.1.4 central-loop scale smoke test passed")
 	quit(0)

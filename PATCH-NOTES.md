@@ -1,4 +1,27 @@
-# 4TH HEAVEN v0.1.3 — Visible World Fix
+# 4TH HEAVEN v0.1.4 — Central Loop Scale Test
+
+## Added
+
+- Six pedestrians as the official population budget for one active segment.
+- Two walking lanes on each side of the central-loop pavement.
+- Player-aware NPC stopping and soft side-step avoidance.
+
+## Improved
+
+- Widened the asphalt into two properly proportioned vehicle lanes.
+- Widened both sidewalks to hold two doodles side-by-side.
+- Enlarged the current car while preserving its accepted visual design.
+- Moved the player spawn onto the widened sidewalk.
+
+## Preserved
+
+- The accepted oval/desert central-loop artwork and route shape.
+- Path recovery after a pedestrian is pushed off the sidewalk.
+- Movement, connected limbs, ragdolls, contextual push and activity culling.
+
+---
+
+## Previous: v0.1.3 — Visible World Fix
 
 ## Fixed
 

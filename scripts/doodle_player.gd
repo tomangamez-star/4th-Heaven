@@ -48,6 +48,7 @@ var world_activity_enabled := true
 var npc_redraw_time := 0.0
 var sidestep_time := 0.0
 var sidestep_direction := 1.0
+var player_blocked_last_frame := false
 var push_target
 var show_connectors := true
 var clothing_color := Color("#16a9bd")
@@ -178,18 +179,31 @@ func _update_route_npc(delta: float) -> void:
 	var desired := global_position.direction_to(target)
 	var avoidance := Vector2.ZERO
 	var blocked_ahead := false
-	for candidate in get_tree().get_nodes_in_group("npc"):
+	var player_ahead_distance := INF
+	for candidate in get_tree().get_nodes_in_group("doodles"):
 		if candidate == self or not candidate.visible:
 			continue
 		var separation: Vector2 = global_position - candidate.global_position
 		var separation_length: float = separation.length()
-		if separation_length > 0.01 and separation_length < 92.0:
-			avoidance += separation.normalized() * (1.0 - separation_length / 92.0)
-			if desired.dot(-separation.normalized()) > 0.55 and separation_length < 76.0:
+		var awareness := 112.0 if not candidate.is_npc else 92.0
+		if separation_length > 0.01 and separation_length < awareness:
+			var separation_direction := separation.normalized()
+			var strength := 1.0 - separation_length / awareness
+			avoidance += separation_direction * strength * (1.65 if not candidate.is_npc else 1.0)
+			if desired.dot(-separation_direction) > 0.55 and separation_length < 86.0:
 				blocked_ahead = true
+				if not candidate.is_npc:
+					player_ahead_distance = minf(player_ahead_distance, separation_length)
+	player_blocked_last_frame = player_ahead_distance < INF
 	if blocked_ahead and sidestep_time <= 0.0:
 		sidestep_time = 0.85
 		sidestep_direction = -1.0 if get_instance_id() % 2 == 0 else 1.0
+	# At body-contact distance pedestrians wait instead of bulldozing the player.
+	# Farther away they use the same soft side-step used for another pedestrian.
+	if player_ahead_distance < 72.0:
+		_apply_controlled_motion(Vector2.ZERO, false, delta)
+		_queue_npc_redraw()
+		return
 	var side := Vector2(-desired.y, desired.x) * sidestep_direction
 	var sidestep := side * 0.72 if sidestep_time > 0.0 else Vector2.ZERO
 	desired = (desired + avoidance * 1.15 + sidestep).normalized()

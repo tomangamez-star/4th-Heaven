@@ -7,7 +7,7 @@ func configure(points: PackedVector2Array) -> void:
 	z_index = -3
 	queue_redraw()
 
-func get_vehicle_route(lane_offset: float = -58.0) -> PackedVector2Array:
+func get_vehicle_route(lane_offset: float = -95.0) -> PackedVector2Array:
 	var result := PackedVector2Array()
 	for i in route.size():
 		var previous := route[(i - 1 + route.size()) % route.size()]
@@ -20,9 +20,11 @@ func get_vehicle_route(lane_offset: float = -58.0) -> PackedVector2Array:
 func _draw() -> void:
 	if route.size() < 2:
 		return
-	_draw_closed_path(Color(0.12, 0.07, 0.04, 0.30), 304.0)
-	_draw_closed_path(Color("#57585a"), 286.0)
-	_draw_closed_path(Color("#34373b"), 260.0)
+	# Two generous lanes keep cars visually larger than pedestrians without
+	# making either lane feel cramped.
+	_draw_closed_path(Color(0.12, 0.07, 0.04, 0.30), 430.0)
+	_draw_closed_path(Color("#57585a"), 410.0)
+	_draw_closed_path(Color("#34373b"), 380.0)
 	_draw_closed_path(Color(1.0, 0.78, 0.31, 0.72), 5.0)
 	# Short hand-painted lane markings keep the road readable at phone scale.
 	for i in route.size():

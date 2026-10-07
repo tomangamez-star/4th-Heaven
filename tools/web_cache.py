@@ -8,5 +8,5 @@ for path in root.rglob("*"):
         continue
     text = path.read_text(encoding="utf-8")
     if path.name == "index.html":
-        text = text.replace("game.html'", "game.html?v=013-visible-world'")
+        text = text.replace("game.html'", "game.html?v=014-central-loop'")
     path.write_text(text, encoding="utf-8")

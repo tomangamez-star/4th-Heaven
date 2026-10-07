@@ -1,4 +1,4 @@
-# 4TH HEAVEN v0.1.3 — Visible World Fix
+# 4TH HEAVEN v0.1.4 — Central Loop Scale Test
 
 Procedural pedestrian-world prototype for **4TH HEAVEN**.
 
@@ -18,6 +18,9 @@ Procedural pedestrian-world prototype for **4TH HEAVEN**.
 - Independent asphalt road layer with its own filter-ready drawing
 - First code-drawn vehicle following an authored traffic route
 - Guaranteed populated opening camera with the road, pedestrians, car and props
+- Properly proportioned two-lane central-loop road and two-person sidewalks
+- Six pedestrians per camera-sized city segment
+- Player-aware pedestrian stopping and soft side-step avoidance
 - Vehicle corner slowdown and ragdoll impact
 - Different NPC walking speeds, route directions and destination pauses
 - Tighter near-camera activity culling for pedestrians and traffic

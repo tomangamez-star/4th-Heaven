@@ -29,12 +29,12 @@ func get_route() -> PackedVector2Array:
 	return route.duplicate()
 
 func _draw() -> void:
-	# Wide pavement foundation. The independent road layer sits above its centre,
-	# leaving a clearly visible pedestrian strip on both sides.
-	_draw_closed_path(Color(0.18, 0.10, 0.055, 0.28), 456.0)
-	_draw_closed_path(Color("#625548"), 432.0)
-	_draw_closed_path(Color("#b7a58d"), 410.0)
-	_draw_closed_path(Color("#c8b79d"), 386.0)
+	# A full two-person pavement on both sides of the independent road layer.
+	# The clear walking band is wide enough for two 66px doodle bodies abreast.
+	_draw_closed_path(Color(0.18, 0.10, 0.055, 0.28), 820.0)
+	_draw_closed_path(Color("#625548"), 792.0)
+	_draw_closed_path(Color("#b7a58d"), 758.0)
+	_draw_closed_path(Color("#c8b79d"), 730.0)
 
 	# Sparse seams make the street-walk readable without becoming realistic.
 	for i in route.size():
@@ -43,9 +43,9 @@ func _draw() -> void:
 		var next := route[(i + 1) % route.size()]
 		var direction := (next - previous).normalized()
 		var normal := Vector2(-direction.y, direction.x)
-		draw_line(point - normal * 205.0, point - normal * 150.0, Color(0.30, 0.23, 0.18, 0.20), 3.0, true)
-		draw_line(point + normal * 150.0, point + normal * 205.0, Color(0.30, 0.23, 0.18, 0.20), 3.0, true)
-		draw_circle(point + normal * 180.0, 4.0, Color(1.0, 0.91, 0.76, 0.18))
+		draw_line(point - normal * 360.0, point - normal * 220.0, Color(0.30, 0.23, 0.18, 0.20), 3.0, true)
+		draw_line(point + normal * 220.0, point + normal * 360.0, Color(0.30, 0.23, 0.18, 0.20), 3.0, true)
+		draw_circle(point + normal * 310.0, 4.0, Color(1.0, 0.91, 0.76, 0.18))
 
 func get_pedestrian_route(lane_offset: float) -> PackedVector2Array:
 	var result := PackedVector2Array()

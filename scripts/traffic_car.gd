@@ -11,6 +11,8 @@ var impact_cooldown := {}
 
 func _ready() -> void:
 	z_index = 6
+	# Preserve the accepted design while correcting its scale against a doodle.
+	scale = Vector2(1.25, 1.25)
 	add_to_group("world_activity")
 	var area := Area2D.new()
 	area.name = "ImpactArea"
