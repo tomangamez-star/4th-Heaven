@@ -1,4 +1,4 @@
-# 4TH HEAVEN v0.1.9 — Night Traffic & Scale Polish
+# 4TH HEAVEN v0.2.0 — Roadlight & Vehicle Proportion Lock
 
 Procedural pedestrian-world prototype for **4TH HEAVEN**.
 
@@ -42,6 +42,9 @@ Procedural pedestrian-world prototype for **4TH HEAVEN**.
 - Recognisable overhead streetlamp fixtures with genuine Godot light pools
 - Bright live headlights, red tail lights and stronger night road illumination
 - Vehicle impact ring, sparks, dust, braking reaction and body jolt
+- Five preserved/expanded park lights plus five road-facing streetlights
+- Wider real-world vehicle silhouettes with approximately 25% more length
+- Broad soft headlight spread reaching across the driving lane
 - Shared late-afternoon sunlight direction for characters, cars and street props
 - Reusable behaviour destinations that return NPCs to their sidewalk routes
 - Clean central loop with temporary laboratory props removed

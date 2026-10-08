@@ -1,4 +1,23 @@
-# 4TH HEAVEN v0.1.9 — Night Traffic & Scale Polish
+# 4TH HEAVEN v0.2.0 — Roadlight & Vehicle Proportion Lock
+
+## Improved
+
+- Increased car width slightly and length by approximately 25% without changing the accepted physical hitboxes.
+- Made the bus visibly wider and longer than every car so it no longer reads as a stretched car.
+- Expanded vehicle shadows and moved lamps to match the larger artwork.
+- Rebuilt headlights as much broader, softer lane-covering beams.
+- Preserved every park light, added two more park lights and added five dedicated road-facing streetlights.
+- Projected the new roadside light pools inward across the asphalt while keeping their physical poles safely on the pavement.
+
+## Preserved
+
+- Accepted traffic collision and vehicle-hit mechanics.
+- Night-only activation for streetlights, headlights and tail lights.
+- Current impact ring, sparks, dust, suspension jolt and traffic-following logic.
+
+---
+
+## Previous: v0.1.9 — Night Traffic & Scale Polish
 
 ## Corrected
 

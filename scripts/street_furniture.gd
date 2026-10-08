@@ -10,6 +10,7 @@ var bench_spots := PackedVector2Array()
 var bus_stop_spots := PackedVector2Array()
 var gather_spots := PackedVector2Array()
 var streetlight_spots := PackedVector2Array()
+var roadlight_spots := PackedVector2Array()
 var bin_spots := PackedVector2Array()
 var sign_spots := PackedVector2Array()
 var prop_rotations: Dictionary = {}
@@ -34,7 +35,7 @@ func _ready() -> void:
 
 func _rebuild_layout() -> void:
 	bench_spots.clear(); bus_stop_spots.clear(); gather_spots.clear()
-	streetlight_spots.clear(); bin_spots.clear(); sign_spots.clear(); prop_rotations.clear()
+	streetlight_spots.clear(); roadlight_spots.clear(); bin_spots.clear(); sign_spots.clear(); prop_rotations.clear()
 	if route.size() < 8: return
 	# Sparse, deliberate furniture beyond both pedestrian lanes on the open-space side.
 	_add_spot(bench_spots, 2, FURNITURE_OFFSET)
@@ -42,8 +43,17 @@ func _rebuild_layout() -> void:
 	_add_spot(bench_spots, 11, FURNITURE_OFFSET)
 	_add_spot(bus_stop_spots, 4, FURNITURE_OFFSET + 18.0)
 	_add_spot(streetlight_spots, 1, 382.0)
+	_add_spot(streetlight_spots, 3, 382.0)
 	_add_spot(streetlight_spots, 6, 382.0)
+	_add_spot(streetlight_spots, 9, 382.0)
 	_add_spot(streetlight_spots, 12, 382.0)
+	# Opposite-side fixtures fill the long dark asphalt gaps. Their actual glow
+	# is projected inward toward the road centre rather than onto the park.
+	_add_spot(roadlight_spots, 0, -382.0)
+	_add_spot(roadlight_spots, 4, -382.0)
+	_add_spot(roadlight_spots, 7, -382.0)
+	_add_spot(roadlight_spots, 10, -382.0)
+	_add_spot(roadlight_spots, 13, -382.0)
 	_add_spot(bin_spots, 3, FURNITURE_OFFSET)
 	_add_spot(sign_spots, 4, 386.0)
 	# Social pockets are outside the pavement, never on asphalt or a walking lane.
@@ -75,7 +85,7 @@ func get_sit_spots() -> PackedVector2Array:
 	return result
 
 func get_gather_spots() -> PackedVector2Array: return gather_spots.duplicate()
-func get_prop_count() -> int: return bench_spots.size() + bus_stop_spots.size() + streetlight_spots.size() + bin_spots.size() + sign_spots.size()
+func get_prop_count() -> int: return bench_spots.size() + bus_stop_spots.size() + streetlight_spots.size() + roadlight_spots.size() + bin_spots.size() + sign_spots.size()
 
 func is_point_on_road(point: Vector2) -> bool:
 	if route.size() < 2: return false
@@ -101,6 +111,7 @@ func _draw() -> void:
 	for position in bench_spots: _draw_bench(position, prop_rotations.get(position, 0.0))
 	for position in bus_stop_spots: _draw_bus_stop_base(position, prop_rotations.get(position, 0.0))
 	for position in streetlight_spots: _draw_streetlight(position)
+	for position in roadlight_spots: _draw_streetlight(position)
 	for position in bin_spots: _draw_bin(position)
 	for position in sign_spots: _draw_bus_sign(position)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -173,6 +184,7 @@ func _create_collisions() -> void:
 		_add_box_collision(holder, position + right * 105.0, rotation, Vector2(14, 116), "ShelterSide")
 		_add_box_collision(holder, position + down * 22.0, rotation, Vector2(136, 27), "ShelterBench")
 	for position in streetlight_spots: _add_circle_collision(holder, position, 13.0, "Streetlight")
+	for position in roadlight_spots: _add_circle_collision(holder, position, 13.0, "RoadLight")
 	for position in bin_spots: _add_circle_collision(holder, position, 19.0, "Bin")
 	for position in sign_spots: _add_circle_collision(holder, position, 10.0, "BusSign")
 
@@ -198,12 +210,28 @@ func _lamp_box() -> StyleBoxFlat:
 
 func _create_street_lights() -> void:
 	var texture := _radial_light_texture()
-	for index in streetlight_spots.size():
+	var all_lights := streetlight_spots + roadlight_spots
+	for index in all_lights.size():
+		var fixture_position: Vector2 = all_lights[index]
+		var glow_position := fixture_position + Vector2(21, -31)
+		if roadlight_spots.has(fixture_position):
+			glow_position += fixture_position.direction_to(_nearest_route_point(fixture_position)) * 150.0
 		var lamp := PointLight2D.new(); lamp.name = "StreetGlow%d" % index
-		lamp.position = streetlight_spots[index] + Vector2(21, -31)
-		lamp.texture = texture; lamp.texture_scale = 2.6; lamp.energy = 1.75; lamp.color = Color("#ffd27a")
+		lamp.position = glow_position
+		lamp.texture = texture; lamp.texture_scale = 3.15 if roadlight_spots.has(fixture_position) else 2.75
+		lamp.energy = 1.85; lamp.color = Color("#ffd27a")
 		lamp.add_to_group("night_street_light")
 		add_child(lamp)
+
+func _nearest_route_point(point: Vector2) -> Vector2:
+	var nearest := Vector2.ZERO
+	var nearest_distance := INF
+	for route_point in route:
+		var distance := point.distance_squared_to(route_point)
+		if distance < nearest_distance:
+			nearest_distance = distance
+			nearest = route_point
+	return nearest
 
 func _radial_light_texture() -> GradientTexture2D:
 	var gradient := Gradient.new(); gradient.set_color(0, Color(1, 1, 1, 0.95)); gradient.set_color(1, Color(1, 1, 1, 0.0))

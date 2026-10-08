@@ -44,7 +44,9 @@ func _ready() -> void:
 	visual_root = Node2D.new(); visual_root.name = "VehicleSuspension"; add_child(visual_root)
 	sprite = Sprite2D.new(); sprite.name = "VehicleSprite"
 	sprite.texture = BUS_TEXTURE if vehicle_kind == "bus" else CAR_TEXTURES[color_variant]
-	sprite.scale = Vector2(0.91, 0.91) if vehicle_kind == "bus" else Vector2(0.84, 0.84)
+	# The PNGs stay readable beside the doodles: cars are roughly two doodle
+	# shoulders wide, while the bus has a clearly heavier road presence.
+	sprite.scale = Vector2(1.12, 1.14) if vehicle_kind == "bus" else Vector2(0.98, 1.05)
 	visual_root.add_child(sprite)
 	_create_collision()
 	_create_vehicle_lights()
@@ -65,11 +67,11 @@ func _create_collision() -> void:
 func _create_vehicle_lights() -> void:
 	var texture := _radial_light_texture()
 	headlight = PointLight2D.new(); headlight.name = "HeadlightGlow"; headlight.texture = texture
-	headlight.position = Vector2(0, -148 if vehicle_kind == "bus" else -94)
-	headlight.color = Color("#ffe2a0"); headlight.energy = 1.65; headlight.texture_scale = 1.55 if vehicle_kind == "bus" else 1.25
+	headlight.position = Vector2(0, -188 if vehicle_kind == "bus" else -121)
+	headlight.color = Color("#ffe2a0"); headlight.energy = 1.72; headlight.texture_scale = 1.95 if vehicle_kind == "bus" else 1.65
 	visual_root.add_child(headlight)
 	tail_light = PointLight2D.new(); tail_light.name = "TailLightGlow"; tail_light.texture = texture
-	tail_light.position = Vector2(0, 148 if vehicle_kind == "bus" else 94)
+	tail_light.position = Vector2(0, 188 if vehicle_kind == "bus" else 121)
 	tail_light.color = Color("#ff3e32"); tail_light.energy = 0.55; tail_light.texture_scale = 0.52
 	visual_root.add_child(tail_light)
 
@@ -164,14 +166,16 @@ func set_world_activity(active: bool) -> void:
 
 func _draw() -> void:
 	var shadow_offset: Vector2 = light_manager.get_shadow_offset(12.0 if vehicle_kind == "bus" else 10.0) if is_instance_valid(light_manager) else Vector2(5, 9)
-	var shadow_size := Vector2(112, 292) if vehicle_kind == "bus" else Vector2(98, 188)
+	var shadow_size := Vector2(142, 382) if vehicle_kind == "bus" else Vector2(128, 242)
 	draw_set_transform(shadow_offset, 0.0, Vector2.ONE)
 	draw_style_box(_shadow_box(), Rect2(-shadow_size * 0.5, shadow_size))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if is_instance_valid(light_manager) and light_manager.is_night():
-		var front_y := -148.0 if vehicle_kind == "bus" else -94.0
-		var width := 34.0 if vehicle_kind == "bus" else 29.0
-		draw_colored_polygon(PackedVector2Array([Vector2(-width, front_y), Vector2(width, front_y), Vector2(78, front_y - 195), Vector2(-78, front_y - 195)]), Color(1.0, 0.88, 0.56, 0.34))
+		var front_y := -188.0 if vehicle_kind == "bus" else -121.0
+		var width := 48.0 if vehicle_kind == "bus" else 41.0
+		var far_width := 190.0 if vehicle_kind == "bus" else 158.0
+		var reach := 265.0 if vehicle_kind == "bus" else 235.0
+		draw_colored_polygon(PackedVector2Array([Vector2(-width, front_y), Vector2(width, front_y), Vector2(far_width, front_y - reach), Vector2(-far_width, front_y - reach)]), Color(1.0, 0.88, 0.56, 0.29))
 		draw_circle(Vector2(-width, front_y), 8.0, Color(1.0, 0.92, 0.68, 0.95))
 		draw_circle(Vector2(width, front_y), 8.0, Color(1.0, 0.92, 0.68, 0.95))
 		var rear_y := -front_y

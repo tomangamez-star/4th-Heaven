@@ -104,8 +104,8 @@ func _init() -> void:
 		push_error("Street furniture behaviour destinations were not configured")
 		quit(1)
 		return
-	if furniture.get_prop_count() != 9:
-		push_error("Corrected sparse furniture budget was not applied")
+	if furniture.get_prop_count() != 16 or furniture.streetlight_spots.size() != 5 or furniture.roadlight_spots.size() != 5:
+		push_error("Expanded park and road lighting layout was not applied")
 		quit(1)
 		return
 	for point in furniture.bench_spots + furniture.bus_stop_spots + furniture.gather_spots:
@@ -196,7 +196,7 @@ func _init() -> void:
 		push_error("PNG vehicle artwork was not loaded")
 		quit(1)
 		return
-	if car.sprite.scale.x < 0.82 or bus.sprite.scale.x < 0.89:
+	if car.sprite.scale.x < 0.97 or car.sprite.scale.y < 1.04 or bus.sprite.scale.x < 1.11 or bus.sprite.scale.y < 1.13:
 		push_error("Vehicle artwork is still undersized against doodles and lanes")
 		quit(1)
 		return
@@ -208,7 +208,7 @@ func _init() -> void:
 		push_error("Real night vehicle lights were not created")
 		quit(1)
 		return
-	if get_nodes_in_group("night_street_light").size() != furniture.streetlight_spots.size():
+	if get_nodes_in_group("night_street_light").size() != furniture.streetlight_spots.size() + furniture.roadlight_spots.size():
 		push_error("Streetlight glow sources do not match lamp fixtures")
 		quit(1)
 		return
@@ -246,5 +246,5 @@ func _init() -> void:
 		push_error("Pedestrian did not stop before pushing into the player")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.1.9 night-traffic scale smoke test passed")
+	print("4TH HEAVEN v0.2.0 roadlight and vehicle proportion smoke test passed")
 	quit(0)
