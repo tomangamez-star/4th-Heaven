@@ -2,7 +2,7 @@ extends Node2D
 
 var phase_time := 0.0
 var horizontal_green := true
-const CENTER := Vector2(2305, 440)
+const CENTER := Vector2(2350, 440)
 
 func _ready() -> void:
 	add_to_group("traffic_signal")
@@ -26,15 +26,15 @@ func speed_limit_for(vehicle: Node) -> float:
 	return vehicle.cruise_speed * clampf((forward_distance - 235.0) / 230.0, 0.0, 1.0)
 
 func _draw() -> void:
-	# Four bold zebra crossings around the junction.
+	var paint := Color(0.95, 0.92, 0.82, 0.76)
 	for offset in [-245.0, 245.0]:
-		for stripe in 7:
-			draw_rect(Rect2(CENTER + Vector2(offset - 36, -126 + stripe * 38), Vector2(72, 23)), Color(0.95, 0.92, 0.82, 0.78), true)
-			draw_rect(Rect2(CENTER + Vector2(-126 + stripe * 38, offset - 36), Vector2(23, 72)), Color(0.95, 0.92, 0.82, 0.78), true)
-	_draw_signal(CENTER + Vector2(-275, -275), horizontal_green)
-	_draw_signal(CENTER + Vector2(275, 275), horizontal_green)
-	_draw_signal(CENTER + Vector2(275, -275), not horizontal_green)
-	_draw_signal(CENTER + Vector2(-275, 275), not horizontal_green)
+		for stripe in 6:
+			draw_rect(Rect2(CENTER + Vector2(offset - 52, -142 + stripe * 48), Vector2(104, 24)), paint, true)
+			draw_rect(Rect2(CENTER + Vector2(-142 + stripe * 48, offset - 52), Vector2(24, 104)), paint, true)
+	_draw_signal(CENTER + Vector2(-255, -255), horizontal_green)
+	_draw_signal(CENTER + Vector2(255, 255), horizontal_green)
+	_draw_signal(CENTER + Vector2(255, -255), not horizontal_green)
+	_draw_signal(CENTER + Vector2(-255, 255), not horizontal_green)
 
 func _draw_signal(position: Vector2, green: bool) -> void:
 	draw_circle(position, 22.0, Color("#252b30"))

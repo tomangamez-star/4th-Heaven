@@ -7,6 +7,7 @@ var occupied := false
 var speed := 0.0
 var steering := 0.0
 var sprite: Sprite2D
+var vehicle_camera: Camera2D
 
 func _ready() -> void:
 	name = "PlayerCar"
@@ -15,6 +16,12 @@ func _ready() -> void:
 	sprite = Sprite2D.new(); sprite.texture = CAR_TEXTURE; sprite.scale = Vector2(0.98, 1.05); add_child(sprite)
 	var collider := CollisionShape2D.new(); collider.name = "PlayerCarCollision"
 	var shape := RectangleShape2D.new(); shape.size = Vector2(104, 218); collider.shape = shape; add_child(collider)
+	vehicle_camera = Camera2D.new(); vehicle_camera.name = "VehicleCamera"
+	vehicle_camera.enabled = false; vehicle_camera.position_smoothing_enabled = true; vehicle_camera.position_smoothing_speed = 7.5
+	vehicle_camera.zoom = Vector2(1.08, 1.08)
+	vehicle_camera.limit_left = -3000; vehicle_camera.limit_right = 3000
+	vehicle_camera.limit_top = -2000; vehicle_camera.limit_bottom = 2000
+	add_child(vehicle_camera)
 	queue_redraw()
 
 func _physics_process(delta: float) -> void:
@@ -28,7 +35,9 @@ func _physics_process(delta: float) -> void:
 	var input: Vector2 = controls.movement_vector
 	if input.length() < 0.04: input = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	var throttle: float = -input.y
-	steering = move_toward(steering, input.x, delta * 3.8)
+	var steer_input: float = controls.get_steering_axis()
+	if absf(steer_input) < 0.01: steer_input = input.x
+	steering = move_toward(steering, steer_input, delta * 3.8)
 	speed = move_toward(speed, throttle * 430.0, delta * (520.0 if absf(throttle) > 0.05 else 680.0))
 	if absf(speed) > 12.0:
 		rotation += steering * delta * 1.75 * signf(speed)
@@ -39,18 +48,30 @@ func _physics_process(delta: float) -> void:
 
 func _enter_vehicle() -> void:
 	occupied = true
+	visible = true
+	controls.set_driving_mode(true)
 	player.visible = false
 	player.set_physics_process(false)
 	var collider: Node = player.get_node_or_null("CollisionShape2D")
 	if collider: collider.set_deferred("disabled", true)
+	var player_camera := player.get_node_or_null("PlayerCamera") as Camera2D
+	if is_instance_valid(player_camera): player_camera.enabled = false
+	vehicle_camera.enabled = true
+	vehicle_camera.make_current()
 
 func _exit_vehicle() -> void:
 	occupied = false
+	controls.set_driving_mode(false)
 	player.global_position = global_position + Vector2.RIGHT.rotated(rotation) * 105.0
 	player.visible = true
 	player.set_physics_process(true)
 	var collider: Node = player.get_node_or_null("CollisionShape2D")
 	if collider: collider.set_deferred("disabled", false)
+	vehicle_camera.enabled = false
+	var player_camera := player.get_node_or_null("PlayerCamera") as Camera2D
+	if is_instance_valid(player_camera):
+		player_camera.enabled = true
+		player_camera.make_current()
 	controls.set_interact_visible(false)
 
 func _draw() -> void:

@@ -67,6 +67,11 @@ func _init() -> void:
 		push_error("Two-section city expansion actors were not created")
 		quit(1)
 		return
+	var world_boundaries := extension.get_node_or_null("WorldBoundaries")
+	if world_boundaries == null or world_boundaries.get_child_count() != 4:
+		push_error("Expanded world boundaries were not created")
+		quit(1)
+		return
 	if instance.get_node_or_null("BrickWall") != null or instance.get_node_or_null("MovableCrate") != null:
 		push_error("Temporary laboratory props still exist in the central loop")
 		quit(1)
@@ -241,12 +246,12 @@ func _init() -> void:
 	var saved_player_position: Vector2 = player.global_position
 	player.global_position = player_car.global_position + Vector2(80, 0)
 	player_car._enter_vehicle()
-	if not player_car.occupied or player.visible:
+	if not player_car.occupied or player.visible or not player_car.visible or not controls.driving_mode or not player_car.vehicle_camera.enabled:
 		push_error("Player could not enter the parked test car")
 		quit(1)
 		return
 	player_car._exit_vehicle()
-	if player_car.occupied or not player.visible:
+	if player_car.occupied or not player.visible or controls.driving_mode or not player.get_node("PlayerCamera").enabled:
 		push_error("Player could not exit the parked test car")
 		quit(1)
 		return
@@ -285,5 +290,5 @@ func _init() -> void:
 		push_error("Pedestrian did not stop before pushing into the player")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.2.1 junction, traffic and driveable-car smoke test passed")
+	print("4TH HEAVEN v0.2.2 district and vehicle-control recovery smoke test passed")
 	quit(0)

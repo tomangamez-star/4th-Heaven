@@ -16,6 +16,9 @@ func _draw() -> void:
 	draw_circle(jc, 84.0, Color(0.84, 0.94, 0.95, 0.10), false, 3.0)
 	draw_circle(jk, 37.0, Color(0.87, 0.96, 0.97, 0.31))
 	draw_circle(jk, 36.0, Color(0.92, 1.0, 1.0, 0.18), false, 2.0)
+	if controls.driving_mode:
+		_draw_driving_controls()
+		return
 
 	var run_fill := Color(0.08, 0.66, 0.74, 0.46) if controls.run_pressed else Color(0.035, 0.045, 0.055, 0.38)
 	draw_circle(rc, 59.0, run_fill)
@@ -73,6 +76,23 @@ func _draw_time_buttons() -> void:
 				var direction := Vector2.RIGHT.rotated(deg_to_rad(float(angle)))
 				draw_line(center + Vector2(-22, -3) + direction * 11.0, center + Vector2(-22, -3) + direction * 15.0, colors[i], 2.0)
 		draw_string(ThemeDB.fallback_font, center + Vector2(-8, 5), labels[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.94, 0.98, 0.98, 0.88))
+
+func _draw_driving_controls() -> void:
+	var left: Vector2 = controls.steer_left_center
+	var right: Vector2 = controls.steer_right_center
+	for data in [[left, -1.0, controls.steer_left_pressed], [right, 1.0, controls.steer_right_pressed]]:
+		var center: Vector2 = data[0]
+		var direction: float = data[1]
+		var pressed: bool = data[2]
+		draw_circle(center, 61.0, Color(0.08, 0.66, 0.74, 0.52) if pressed else Color(0.035, 0.045, 0.055, 0.48))
+		draw_circle(center, 59.0, Color(0.82, 0.97, 0.98, 0.25), false, 3.0)
+		var tip := center + Vector2(direction * 23.0, 0)
+		draw_colored_polygon(PackedVector2Array([tip, center + Vector2(direction * -15.0, -22), center + Vector2(direction * -15.0, 22)]), Color(0.92, 1.0, 1.0, 0.90))
+	# EXIT replaces the walking action stack while the car owns the camera.
+	var exit_center: Vector2 = controls.interact_center
+	draw_circle(exit_center, 48.0, Color(0.42, 0.15, 0.12, 0.68))
+	draw_circle(exit_center, 46.0, Color(1.0, 0.76, 0.60, 0.30), false, 3.0)
+	draw_string(ThemeDB.fallback_font, exit_center + Vector2(-21, 6), "EXIT", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color.WHITE)
 
 func _time_box(fill: Color, border: Color) -> StyleBoxFlat:
 	var box := StyleBoxFlat.new(); box.bg_color = fill; box.border_color = border

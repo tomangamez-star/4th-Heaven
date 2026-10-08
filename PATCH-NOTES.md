@@ -1,4 +1,30 @@
-# 4TH HEAVEN v0.2.1 — First District Expansion & Smart Traffic
+# 4TH HEAVEN v0.2.2 — District & Vehicle-Control Recovery
+
+## Rebuilt
+
+- Removed the oversized rectangular road and pavement construction from v0.2.1.
+- Rebuilt both added sections with the oval's exact layered pavement, curb, asphalt and line proportions.
+- Merged the east road directly through the oval edge instead of placing a disconnected map slab beside it.
+- Replaced the giant beige parking platform with a compact rounded asphalt parking court.
+- Simplified and re-aligned all four crosswalks around the corrected junction centre.
+
+## Fixed
+
+- Added four physical outer-world boundaries matching the complete 6000×4000 terrain.
+- Expanded the walking and vehicle camera limits so neither can continue beyond a frozen camera.
+- Added a dedicated vehicle camera; entering a car now keeps the car visible and transfers camera ownership correctly.
+- Restores the player camera, player collision and walking HUD on exit.
+- Added a true driving HUD: vertical joystick for forward/reverse, separate right-side left/right steering and Exit control.
+- Removed Run, ragdoll and push controls while driving.
+
+## Preserved
+
+- Smart following distances, chain braking, pedestrian yielding and bright brake lamps from v0.2.1.
+- The accepted central oval, plaza, night lighting, traffic impact and doodle systems.
+
+---
+
+## Previous: v0.2.1 — First District Expansion & Smart Traffic
 
 ## Added
 

@@ -74,10 +74,10 @@ func _ready() -> void:
 	camera.position_smoothing_enabled = true
 	camera.position_smoothing_speed = 7.0
 	camera.zoom = Vector2(1.08, 1.08)
-	camera.limit_left = -2850
-	camera.limit_right = 2850
-	camera.limit_top = -1850
-	camera.limit_bottom = 1850
+	camera.limit_left = -3000
+	camera.limit_right = 3000
+	camera.limit_top = -2000
+	camera.limit_bottom = 2000
 	player.add_child(camera)
 	camera.make_current()
 
@@ -91,7 +91,7 @@ func _ready() -> void:
 	var player_car = DriveableCarScript.new()
 	player_car.player = player
 	player_car.controls = controls
-	player_car.global_position = Vector2(2040, -700)
+	player_car.global_position = Vector2(1710, -790)
 	add_child(player_car)
 
 	# Two walking lanes per pavement. Six pedestrians is the official population

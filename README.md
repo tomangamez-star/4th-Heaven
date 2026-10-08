@@ -1,4 +1,4 @@
-# 4TH HEAVEN v0.2.1 — First District Expansion & Smart Traffic
+# 4TH HEAVEN v0.2.2 — District & Vehicle-Control Recovery
 
 Procedural pedestrian-world prototype for **4TH HEAVEN**.
 
@@ -49,6 +49,10 @@ Procedural pedestrian-world prototype for **4TH HEAVEN**.
 - Working zebra crossings, cycling traffic signals and a crossing pedestrian
 - Speed-aware vehicle gaps, chain braking and bright active brake lamps
 - First parked enterable car with mobile and keyboard driving controls
+- Rebuilt path-based district roads that merge naturally with the oval
+- Compact asphalt parking court with consistent world styling
+- Full-world boundaries and corrected camera travel limits
+- Dedicated visible vehicle camera and mode-specific mobile driving HUD
 - Shared late-afternoon sunlight direction for characters, cars and street props
 - Reusable behaviour destinations that return NPCs to their sidewalk routes
 - Clean central loop with temporary laboratory props removed
