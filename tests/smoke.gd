@@ -16,6 +16,7 @@ func _init() -> void:
 		"res://scripts/central_pavilion_roof.gd",
 		"res://scripts/road_layer.gd",
 		"res://scripts/traffic_car.gd",
+		"res://scripts/vehicle_impact_effect.gd",
 		"res://assets/vehicles/car_red.png",
 		"res://assets/vehicles/car_blue.png",
 		"res://assets/vehicles/car_gold.png",
@@ -128,6 +129,10 @@ func _init() -> void:
 		push_error("Central plaza layering or collisions were not created")
 		quit(1)
 		return
+	if plaza.lawn_boundary.size() != street.get_route().size():
+		push_error("Grass was not derived from the complete inner pavement route")
+		quit(1)
+		return
 	if controls.time_button_centers.size() != 4 or controls.light_manager != light:
 		push_error("Four-state lighting test controls were not configured")
 		quit(1)
@@ -191,8 +196,20 @@ func _init() -> void:
 		push_error("PNG vehicle artwork was not loaded")
 		quit(1)
 		return
+	if car.sprite.scale.x < 0.82 or bus.sprite.scale.x < 0.89:
+		push_error("Vehicle artwork is still undersized against doodles and lanes")
+		quit(1)
+		return
 	if car.get_node_or_null("VehicleCollision") == null or bus.get_node_or_null("VehicleCollision") == null:
 		push_error("Physical traffic collisions were not created")
+		quit(1)
+		return
+	if car.get_node_or_null("VehicleSuspension/HeadlightGlow") == null or bus.get_node_or_null("VehicleSuspension/TailLightGlow") == null:
+		push_error("Real night vehicle lights were not created")
+		quit(1)
+		return
+	if get_nodes_in_group("night_street_light").size() != furniture.streetlight_spots.size():
+		push_error("Streetlight glow sources do not match lamp fixtures")
 		quit(1)
 		return
 	var saved_car_position: Vector2 = car.global_position
@@ -229,5 +246,5 @@ func _init() -> void:
 		push_error("Pedestrian did not stop before pushing into the player")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.1.8 central-district traffic smoke test passed")
+	print("4TH HEAVEN v0.1.9 night-traffic scale smoke test passed")
 	quit(0)

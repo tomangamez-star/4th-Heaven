@@ -6,6 +6,7 @@ const CAR_TEXTURES := [
 	preload("res://assets/vehicles/car_gold.png")
 ]
 const BUS_TEXTURE = preload("res://assets/vehicles/city_bus.png")
+const ImpactEffectScript = preload("res://scripts/vehicle_impact_effect.gd")
 
 var route := PackedVector2Array()
 var route_index := 0
@@ -22,6 +23,9 @@ var safe_follow_distance := 150.0
 var visual_root: Node2D
 var sprite: Sprite2D
 var travel_phase := 0.0
+var impact_jolt := 0.0
+var headlight: PointLight2D
+var tail_light: PointLight2D
 
 func setup(kind: String, variant: int = 0) -> void:
 	vehicle_kind = kind
@@ -40,19 +44,48 @@ func _ready() -> void:
 	visual_root = Node2D.new(); visual_root.name = "VehicleSuspension"; add_child(visual_root)
 	sprite = Sprite2D.new(); sprite.name = "VehicleSprite"
 	sprite.texture = BUS_TEXTURE if vehicle_kind == "bus" else CAR_TEXTURES[color_variant]
-	sprite.scale = Vector2(0.69, 0.69) if vehicle_kind == "bus" else Vector2(0.62, 0.62)
+	sprite.scale = Vector2(0.91, 0.91) if vehicle_kind == "bus" else Vector2(0.84, 0.84)
 	visual_root.add_child(sprite)
 	_create_collision()
+	_create_vehicle_lights()
+	if is_instance_valid(light_manager):
+		light_manager.time_state_changed.connect(_on_time_state_changed)
+		_on_time_state_changed(light_manager.current_state)
 	queue_redraw()
 
 func _create_collision() -> void:
 	var body_collision := CollisionShape2D.new(); body_collision.name = "VehicleCollision"
-	var body_shape := RectangleShape2D.new(); body_shape.size = Vector2(80, 214) if vehicle_kind == "bus" else Vector2(70, 132)
+	var body_shape := RectangleShape2D.new(); body_shape.size = Vector2(105, 282) if vehicle_kind == "bus" else Vector2(92, 178)
 	body_collision.shape = body_shape; add_child(body_collision)
 	var area := Area2D.new(); area.name = "ImpactArea"; area.monitoring = true; area.body_entered.connect(_on_body_entered)
 	var impact_collision := CollisionShape2D.new(); var impact_shape := RectangleShape2D.new()
 	impact_shape.size = body_shape.size + Vector2(10, 12); impact_collision.shape = impact_shape
 	area.add_child(impact_collision); add_child(area)
+
+func _create_vehicle_lights() -> void:
+	var texture := _radial_light_texture()
+	headlight = PointLight2D.new(); headlight.name = "HeadlightGlow"; headlight.texture = texture
+	headlight.position = Vector2(0, -148 if vehicle_kind == "bus" else -94)
+	headlight.color = Color("#ffe2a0"); headlight.energy = 1.65; headlight.texture_scale = 1.55 if vehicle_kind == "bus" else 1.25
+	visual_root.add_child(headlight)
+	tail_light = PointLight2D.new(); tail_light.name = "TailLightGlow"; tail_light.texture = texture
+	tail_light.position = Vector2(0, 148 if vehicle_kind == "bus" else 94)
+	tail_light.color = Color("#ff3e32"); tail_light.energy = 0.55; tail_light.texture_scale = 0.52
+	visual_root.add_child(tail_light)
+
+func _radial_light_texture() -> GradientTexture2D:
+	var gradient := Gradient.new()
+	gradient.set_color(0, Color(1, 1, 1, 0.92)); gradient.set_color(1, Color(1, 1, 1, 0.0))
+	var texture := GradientTexture2D.new(); texture.gradient = gradient
+	texture.width = 128; texture.height = 128; texture.fill = GradientTexture2D.FILL_RADIAL
+	texture.fill_from = Vector2(0.5, 0.5); texture.fill_to = Vector2(1.0, 0.5)
+	return texture
+
+func _on_time_state_changed(state_name: String) -> void:
+	var enabled := state_name == "night"
+	if is_instance_valid(headlight): headlight.enabled = enabled
+	if is_instance_valid(tail_light): tail_light.enabled = enabled
+	queue_redraw()
 
 func configure(points: PackedVector2Array, start_index: int = 0) -> void:
 	route = points.duplicate()
@@ -78,6 +111,7 @@ func _physics_process(delta: float) -> void:
 	var acceleration := 125.0 if vehicle_kind == "bus" else 210.0
 	var braking := 330.0 if vehicle_kind == "bus" else 440.0
 	current_speed = move_toward(current_speed, target_speed, (acceleration if target_speed > current_speed else braking) * delta)
+	impact_jolt = move_toward(impact_jolt, 0.0, delta * 4.2)
 	heading = heading.lerp(desired, 1.0 - exp(-4.2 * delta)).normalized()
 	velocity = heading * current_speed
 	move_and_slide()
@@ -106,8 +140,8 @@ func _update_suspension(delta: float, corner_angle: float) -> void:
 	var motion_amount := clampf(current_speed / cruise_speed, 0.0, 1.0)
 	var wobble := sin(travel_phase) * 0.75 * motion_amount
 	var braking_amount := clampf((previous_speed - current_speed) / 8.0, 0.0, 1.0)
-	visual_root.position = Vector2(cos(travel_phase * 0.53) * 0.45, wobble - braking_amount * 1.1)
-	visual_root.rotation = sin(travel_phase * 0.61) * 0.004 * motion_amount + clampf(corner_angle, -0.5, 0.5) * 0.012
+	visual_root.position = Vector2(cos(travel_phase * 0.53) * 0.45 + impact_jolt * 4.0, wobble - braking_amount * 1.1)
+	visual_root.rotation = sin(travel_phase * 0.61) * 0.004 * motion_amount + clampf(corner_angle, -0.5, 0.5) * 0.012 + impact_jolt * 0.035
 
 func _update_impact_cooldowns(delta: float) -> void:
 	for body in impact_cooldown.keys():
@@ -117,6 +151,10 @@ func _update_impact_cooldowns(delta: float) -> void:
 func _on_body_entered(body: Node) -> void:
 	if not body.is_in_group("doodles") or impact_cooldown.has(body): return
 	impact_cooldown[body] = 1.0
+	impact_jolt = 1.0
+	current_speed *= 0.72
+	var effect = ImpactEffectScript.new(); effect.direction = -heading
+	get_parent().add_child(effect); effect.global_position = body.global_position
 	if body.has_method("trigger_ragdoll"): body.trigger_ragdoll(heading * (470.0 if vehicle_kind == "bus" else 520.0))
 
 func set_world_activity(active: bool) -> void:
@@ -126,16 +164,19 @@ func set_world_activity(active: bool) -> void:
 
 func _draw() -> void:
 	var shadow_offset: Vector2 = light_manager.get_shadow_offset(12.0 if vehicle_kind == "bus" else 10.0) if is_instance_valid(light_manager) else Vector2(5, 9)
-	var shadow_size := Vector2(86, 224) if vehicle_kind == "bus" else Vector2(76, 142)
+	var shadow_size := Vector2(112, 292) if vehicle_kind == "bus" else Vector2(98, 188)
 	draw_set_transform(shadow_offset, 0.0, Vector2.ONE)
 	draw_style_box(_shadow_box(), Rect2(-shadow_size * 0.5, shadow_size))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if is_instance_valid(light_manager) and light_manager.is_night():
-		var front_y := -116.0 if vehicle_kind == "bus" else -72.0
-		var width := 27.0 if vehicle_kind == "bus" else 22.0
-		draw_colored_polygon(PackedVector2Array([Vector2(-width, front_y), Vector2(width, front_y), Vector2(54, front_y - 120), Vector2(-54, front_y - 120)]), Color(1.0, 0.86, 0.53, 0.13))
-		draw_circle(Vector2(-width, front_y), 5.0, Color(1.0, 0.88, 0.60, 0.80))
-		draw_circle(Vector2(width, front_y), 5.0, Color(1.0, 0.88, 0.60, 0.80))
+		var front_y := -148.0 if vehicle_kind == "bus" else -94.0
+		var width := 34.0 if vehicle_kind == "bus" else 29.0
+		draw_colored_polygon(PackedVector2Array([Vector2(-width, front_y), Vector2(width, front_y), Vector2(78, front_y - 195), Vector2(-78, front_y - 195)]), Color(1.0, 0.88, 0.56, 0.34))
+		draw_circle(Vector2(-width, front_y), 8.0, Color(1.0, 0.92, 0.68, 0.95))
+		draw_circle(Vector2(width, front_y), 8.0, Color(1.0, 0.92, 0.68, 0.95))
+		var rear_y := -front_y
+		draw_circle(Vector2(-width, rear_y), 7.0, Color(1.0, 0.12, 0.08, 0.90))
+		draw_circle(Vector2(width, rear_y), 7.0, Color(1.0, 0.12, 0.08, 0.90))
 
 func _shadow_box() -> StyleBoxFlat:
 	var box := StyleBoxFlat.new(); box.bg_color = Color(0.05, 0.045, 0.04, 0.30)

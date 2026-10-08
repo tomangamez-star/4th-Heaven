@@ -26,6 +26,10 @@ func _ready() -> void:
 	if not lights.is_empty(): light_manager = lights[0]
 	_create_collisions()
 	_create_shelter_roofs()
+	_create_street_lights()
+	if is_instance_valid(light_manager):
+		light_manager.time_state_changed.connect(_on_time_state_changed)
+		_on_time_state_changed(light_manager.current_state)
 	queue_redraw()
 
 func _rebuild_layout() -> void:
@@ -125,14 +129,19 @@ func _draw_bus_stop_base(position: Vector2, rotation: float) -> void:
 func _draw_streetlight(position: Vector2) -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if is_instance_valid(light_manager) and light_manager.is_night():
-		draw_circle(position, 44.0, Color(1.0, 0.72, 0.30, 0.10))
-		draw_circle(position, 26.0, Color(1.0, 0.78, 0.40, 0.16))
+		draw_circle(position + Vector2(0, -28), 58.0, Color(1.0, 0.72, 0.30, 0.20))
+		draw_circle(position + Vector2(0, -28), 31.0, Color(1.0, 0.84, 0.48, 0.32))
 	var end := position + _shadow_offset(27.0)
 	var direction := position.direction_to(end); var perpendicular := Vector2(-direction.y, direction.x)
 	# One polygon and alpha pass prevents pole/lamp shadow stacking.
 	var shadow_shape := PackedVector2Array([position - perpendicular * 5.0, position + perpendicular * 5.0, end + perpendicular * 11.0 + direction * 7.0, end - perpendicular * 11.0 + direction * 7.0])
 	draw_colored_polygon(shadow_shape, _shadow_color(0.82))
-	draw_circle(position, 11.0, Color("#30353b")); draw_circle(position, 7.0, Color("#7f8990")); draw_circle(position + Vector2(0, -2), 3.0, Color("#ffe1a0"))
+	# Readable eagle-eye lamp: base, short arm, housing and luminous lens.
+	draw_circle(position, 13.0, Color("#282d33")); draw_circle(position, 8.0, Color("#69757d"))
+	draw_line(position + Vector2(0, -4), position + Vector2(0, -25), Color("#343b41"), 9.0, true)
+	draw_line(position + Vector2(0, -24), position + Vector2(13, -31), Color("#343b41"), 8.0, true)
+	draw_style_box(_lamp_box(), Rect2(position + Vector2(5, -41), Vector2(31, 20)))
+	draw_circle(position + Vector2(21, -31), 7.0, Color("#fff0b2") if is_instance_valid(light_manager) and light_manager.is_night() else Color("#c2c5ba"))
 
 func _draw_bin(position: Vector2) -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -181,3 +190,29 @@ func _create_shelter_roofs() -> void:
 	for position in bus_stop_spots:
 		var roof = ShelterRoofScript.new(); roof.name = "GlassShelterRoof"; roof.position = position; roof.rotation = prop_rotations.get(position, 0.0); roof.light_manager = light_manager
 		add_child(roof)
+
+func _lamp_box() -> StyleBoxFlat:
+	var box := StyleBoxFlat.new(); box.bg_color = Color("#28333a"); box.border_color = Color("#7c898e")
+	box.set_border_width_all(2); box.set_corner_radius_all(7)
+	return box
+
+func _create_street_lights() -> void:
+	var texture := _radial_light_texture()
+	for index in streetlight_spots.size():
+		var lamp := PointLight2D.new(); lamp.name = "StreetGlow%d" % index
+		lamp.position = streetlight_spots[index] + Vector2(21, -31)
+		lamp.texture = texture; lamp.texture_scale = 2.6; lamp.energy = 1.75; lamp.color = Color("#ffd27a")
+		lamp.add_to_group("night_street_light")
+		add_child(lamp)
+
+func _radial_light_texture() -> GradientTexture2D:
+	var gradient := Gradient.new(); gradient.set_color(0, Color(1, 1, 1, 0.95)); gradient.set_color(1, Color(1, 1, 1, 0.0))
+	var texture := GradientTexture2D.new(); texture.gradient = gradient; texture.width = 160; texture.height = 160
+	texture.fill = GradientTexture2D.FILL_RADIAL; texture.fill_from = Vector2(0.5, 0.5); texture.fill_to = Vector2(1.0, 0.5)
+	return texture
+
+func _on_time_state_changed(state_name: String) -> void:
+	var enabled := state_name == "night"
+	for lamp in get_tree().get_nodes_in_group("night_street_light"):
+		if lamp.is_ancestor_of(self) or lamp.get_parent() == self: lamp.enabled = enabled
+	queue_redraw()

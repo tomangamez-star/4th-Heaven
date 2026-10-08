@@ -1,4 +1,28 @@
-# 4TH HEAVEN v0.1.8 — Central District & Traffic Polish
+# 4TH HEAVEN v0.1.9 — Night Traffic & Scale Polish
+
+## Corrected
+
+- Enlarged cars by roughly 35% and the city bus by roughly 32%.
+- Resized every vehicle collision body and shadow to the visible PNG proportions.
+- Replaced the hand-shaped lawn with the exact inner-pavement route boundary.
+- Removed both grass-over-pavement overlap and exposed central soil gaps.
+
+## Improved
+
+- Rebuilt streetlights as readable bases, arms, lamp housings and bright lenses.
+- Added real radial Godot light sources that remain visible through the Night grade.
+- Strengthened vehicle headlight cones and added independent live head/tail lights.
+- Added impact rings, sparks, dust, immediate braking and a small suspension jolt when traffic hits a doodle.
+
+## Preserved
+
+- Accepted Afternoon, Evening and Night atmosphere colours.
+- PNG vehicle artwork, traffic-following logic, bus braking and opposite lane direction.
+- Continuous NPC paths, stuck recovery, station design and performance culling.
+
+---
+
+## Previous: v0.1.8 — Central District & Traffic Polish
 
 ## Added
 

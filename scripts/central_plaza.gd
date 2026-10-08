@@ -3,9 +3,13 @@ extends Node2D
 const RoofScript = preload("res://scripts/central_pavilion_roof.gd")
 
 var light_manager
+var lawn_boundary := PackedVector2Array()
 var building_center := Vector2(0, 430)
 var tree_positions := PackedVector2Array([Vector2(-690, 285), Vector2(690, 285), Vector2(-690, 570), Vector2(690, 570)])
 var bush_positions := PackedVector2Array([Vector2(-475, 225), Vector2(475, 225), Vector2(-475, 625), Vector2(475, 625), Vector2(-820, 430), Vector2(820, 430)])
+
+func configure(inner_sidewalk_edge: PackedVector2Array) -> void:
+	lawn_boundary = inner_sidewalk_edge.duplicate()
 
 func _ready() -> void:
 	z_index = -2
@@ -20,10 +24,12 @@ func _ready() -> void:
 func _draw() -> void:
 	# The lawn follows the actual inner loop instead of exposing a rectangular
 	# soil ring at the angled road corners. It slightly underlaps the sidewalk.
-	var lawn_outer := PackedVector2Array([Vector2(-1285, 155), Vector2(1285, 155), Vector2(1360, 245), Vector2(1160, 700), Vector2(-1160, 700), Vector2(-1360, 245)])
-	var lawn_inner := PackedVector2Array([Vector2(-1248, 182), Vector2(1248, 182), Vector2(1318, 252), Vector2(1132, 674), Vector2(-1132, 674), Vector2(-1318, 252)])
-	draw_colored_polygon(lawn_outer, Color("#466f3f"))
-	draw_colored_polygon(lawn_inner, Color("#5b8b4b"))
+	if lawn_boundary.size() >= 3:
+		draw_colored_polygon(lawn_boundary, Color("#466f3f"))
+		var lawn_inner := PackedVector2Array()
+		for point in lawn_boundary:
+			lawn_inner.append(point.lerp(building_center, 0.025))
+		draw_colored_polygon(lawn_inner, Color("#5b8b4b"))
 	for x in range(-850, 851, 170):
 		for y in range(235, 651, 105):
 			var wave := sin(float(x) * 0.012 + float(y) * 0.017)

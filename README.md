@@ -1,4 +1,4 @@
-# 4TH HEAVEN v0.1.8 — Central District & Traffic Polish
+# 4TH HEAVEN v0.1.9 — Night Traffic & Scale Polish
 
 Procedural pedestrian-world prototype for **4TH HEAVEN**.
 
@@ -37,6 +37,11 @@ Procedural pedestrian-world prototype for **4TH HEAVEN**.
 - Subtle vehicle suspension wobble, turn lean, braking dip and live shadows
 - Continuous NPC pavement movement with blocked-destination recovery
 - True overhead station roof and oval-fitted grass with no exposed soil ring
+- Route-derived grass boundary that stops exactly at the pavement edge
+- Properly scaled car and bus artwork with matching physical bodies
+- Recognisable overhead streetlamp fixtures with genuine Godot light pools
+- Bright live headlights, red tail lights and stronger night road illumination
+- Vehicle impact ring, sparks, dust, braking reaction and body jolt
 - Shared late-afternoon sunlight direction for characters, cars and street props
 - Reusable behaviour destinations that return NPCs to their sidewalk routes
 - Clean central loop with temporary laboratory props removed

@@ -42,6 +42,7 @@ func _ready() -> void:
 
 	var central_plaza = CentralPlazaScript.new()
 	central_plaza.name = "CentralStationPlaza"
+	central_plaza.configure(street_walk.get_pedestrian_route(364.0))
 	add_child(central_plaza)
 
 	var furniture = StreetFurnitureScript.new()
