@@ -21,6 +21,7 @@ func configure(points: PackedVector2Array) -> void:
 func _ready() -> void:
 	z_index = 4
 	add_to_group("street_furniture")
+	add_to_group("world_lit_visual")
 	var lights := get_tree().get_nodes_in_group("world_light")
 	if not lights.is_empty(): light_manager = lights[0]
 	_create_collisions()
@@ -122,6 +123,9 @@ func _draw_bus_stop_base(position: Vector2, rotation: float) -> void:
 
 func _draw_streetlight(position: Vector2) -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if is_instance_valid(light_manager) and light_manager.is_night():
+		draw_circle(position, 44.0, Color(1.0, 0.72, 0.30, 0.10))
+		draw_circle(position, 26.0, Color(1.0, 0.78, 0.40, 0.16))
 	var end := position + _shadow_offset(27.0)
 	var direction := position.direction_to(end); var perpendicular := Vector2(-direction.y, direction.x)
 	# One polygon and alpha pass prevents pole/lamp shadow stacking.

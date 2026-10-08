@@ -1,4 +1,4 @@
-# 4TH HEAVEN v0.1.6 — Street-Life Correction
+# 4TH HEAVEN v0.1.7 — Central Station & Lighting Lab
 
 Procedural pedestrian-world prototype for **4TH HEAVEN**.
 
@@ -27,6 +27,12 @@ Procedural pedestrian-world prototype for **4TH HEAVEN**.
 - Transparent blue shelter roof layered above visible doodles
 - Classic animated conversation dots: (...) → (..) → (.) → (..) → (...)
 - Unified prop-shadow silhouettes with the accepted directional sunlight
+- Central green plaza with paths, trees, bushes and flower details
+- Locked Japanese-inspired station pavilion reserving the future subway entrance
+- Correct building-roof and tree-canopy layering above doodles
+- Morning, afternoon, evening and night world-lighting presets
+- Four temporary lighting-test buttons with smooth atmospheric transitions
+- Rotating shadow direction/length, night windows and active streetlights
 - Shared late-afternoon sunlight direction for characters, cars and street props
 - Reusable behaviour destinations that return NPCs to their sidewalk routes
 - Clean central loop with temporary laboratory props removed

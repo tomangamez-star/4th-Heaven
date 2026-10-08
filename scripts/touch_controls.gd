@@ -14,6 +14,9 @@ var joystick_knob := Vector2.ZERO
 var run_center := Vector2.ZERO
 var ragdoll_center := Vector2.ZERO
 var push_center := Vector2.ZERO
+var light_manager
+var time_button_centers: Array[Vector2] = []
+const TIME_STATES := ["morning", "afternoon", "evening", "night"]
 var viewport_size := Vector2(1280, 720)
 const HudScript = preload("res://scripts/touch_hud_visual.gd")
 
@@ -38,13 +41,20 @@ func _reflow() -> void:
 	run_center = Vector2(viewport_size.x - 120, viewport_size.y - 125)
 	ragdoll_center = Vector2(viewport_size.x - 120, viewport_size.y - 265)
 	push_center = Vector2(viewport_size.x - 260, viewport_size.y - 125)
+	time_button_centers.clear()
+	var start_x := viewport_size.x * 0.5 - 156.0
+	for i in TIME_STATES.size():
+		time_button_centers.append(Vector2(start_x + float(i) * 104.0, 48.0))
 	if is_instance_valid(hud):
 		hud.queue_redraw()
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			if event.position.x < viewport_size.x * 0.48 and joystick_touch < 0:
+			var time_index := _time_button_at(event.position)
+			if time_index >= 0:
+				if is_instance_valid(light_manager): light_manager.set_time_state(TIME_STATES[time_index])
+			elif event.position.x < viewport_size.x * 0.48 and joystick_touch < 0:
 				joystick_touch = event.index
 				_update_joystick(event.position)
 			elif push_visible and event.position.distance_to(push_center) <= RUN_RADIUS * 1.35 and push_touch < 0:
@@ -101,3 +111,8 @@ func set_push_visible(visible: bool) -> void:
 		push_requested = false
 	if is_instance_valid(hud):
 		hud.queue_redraw()
+
+func _time_button_at(position: Vector2) -> int:
+	for i in time_button_centers.size():
+		if position.distance_to(time_button_centers[i]) <= 43.0: return i
+	return -1

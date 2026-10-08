@@ -1,4 +1,27 @@
-# 4TH HEAVEN v0.1.6 — Street-Life Correction
+# 4TH HEAVEN v0.1.7 — Central Station & Lighting Lab
+
+## Added
+
+- A layered green plaza filling the central oval without touching the road layer.
+- Wide stone paths linking the north and south sidewalks through the plaza.
+- A small Japanese-inspired station pavilion with a visibly locked future-subway gate.
+- Four trees, six bushes and restrained flower details with physical collisions.
+- Above-character pavilion roof and tree-canopy rendering.
+- Morning, afternoon, evening and night lighting presets.
+- Four temporary phone-friendly time-state buttons with smooth transitions.
+- State-specific world colour grading, shadow direction, shadow length and strength.
+- Night window glow and warm active streetlights.
+
+## Preserved
+
+- The accepted afternoon directional shadow appearance.
+- Road independence, two-person sidewalks, sparse furniture, shelter layering and collisions.
+- Existing movement, ragdolls, NPC behaviour, traffic and performance budget.
+- Current car artwork for its dedicated follow-up redesign.
+
+---
+
+## Previous: v0.1.6 — Street-Life Correction
 
 ## Corrected
 

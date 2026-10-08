@@ -10,6 +10,7 @@ func _draw() -> void:
 	var rc: Vector2 = controls.run_center
 	var rag: Vector2 = controls.ragdoll_center
 	var push: Vector2 = controls.push_center
+	_draw_time_buttons()
 	draw_circle(jc, 86.0, Color(0.035, 0.045, 0.055, 0.34))
 	draw_circle(jc, 84.0, Color(0.84, 0.94, 0.95, 0.10), false, 3.0)
 	draw_circle(jk, 37.0, Color(0.87, 0.96, 0.97, 0.31))
@@ -42,3 +43,29 @@ func _draw() -> void:
 		draw_line(push + Vector2(-24, 0), push + Vector2(1, 0), Color(0.97, 0.78, 0.61, 0.92), 9.0, true)
 		draw_line(push + Vector2(-18, -13), push + Vector2(0, 0), Color(0.97, 0.78, 0.61, 0.92), 6.0, true)
 		draw_line(push + Vector2(-18, 13), push + Vector2(0, 0), Color(0.97, 0.78, 0.61, 0.92), 6.0, true)
+
+func _draw_time_buttons() -> void:
+	var active := 1
+	if is_instance_valid(controls.light_manager): active = controls.light_manager.get_state_index()
+	var labels := ["MORN", "AFT", "EVE", "NIGHT"]
+	var colors := [Color("#efb56c"), Color("#f5dc72"), Color("#df865f"), Color("#617ab2")]
+	for i in controls.time_button_centers.size():
+		var center: Vector2 = controls.time_button_centers[i]
+		var fill := Color(0.035, 0.045, 0.055, 0.68)
+		if i == active: fill = colors[i].darkened(0.35)
+		draw_style_box(_time_box(fill, colors[i] if i == active else Color(0.85, 0.92, 0.93, 0.24)), Rect2(center - Vector2(43, 25), Vector2(86, 50)))
+		# Simple celestial glyph plus label keeps every state readable on phones.
+		if i == 3:
+			draw_circle(center + Vector2(-21, -2), 9.0, colors[i])
+			draw_circle(center + Vector2(-17, -6), 9.0, fill)
+		else:
+			draw_circle(center + Vector2(-22, -3), 8.0, colors[i])
+			for angle in range(0, 360, 90):
+				var direction := Vector2.RIGHT.rotated(deg_to_rad(float(angle)))
+				draw_line(center + Vector2(-22, -3) + direction * 11.0, center + Vector2(-22, -3) + direction * 15.0, colors[i], 2.0)
+		draw_string(ThemeDB.fallback_font, center + Vector2(-8, 5), labels[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.94, 0.98, 0.98, 0.88))
+
+func _time_box(fill: Color, border: Color) -> StyleBoxFlat:
+	var box := StyleBoxFlat.new(); box.bg_color = fill; box.border_color = border
+	box.set_border_width_all(2); box.set_corner_radius_all(13)
+	return box

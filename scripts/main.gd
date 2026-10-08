@@ -9,6 +9,7 @@ const RoadScript = preload("res://scripts/road_layer.gd")
 const TrafficCarScript = preload("res://scripts/traffic_car.gd")
 const WorldLightScript = preload("res://scripts/world_light_manager.gd")
 const StreetFurnitureScript = preload("res://scripts/street_furniture.gd")
+const CentralPlazaScript = preload("res://scripts/central_plaza.gd")
 
 const NPC_STYLES := [
 	[Color("#d76883"), Color("#46202d"), Color("#633823"), Color("#9d6845")],
@@ -38,6 +39,10 @@ func _ready() -> void:
 	road.name = "RoadLayer"
 	add_child(road)
 	road.configure(street_walk.get_route())
+
+	var central_plaza = CentralPlazaScript.new()
+	central_plaza.name = "CentralStationPlaza"
+	add_child(central_plaza)
 
 	var furniture = StreetFurnitureScript.new()
 	furniture.name = "StreetFurniture"
@@ -69,6 +74,7 @@ func _ready() -> void:
 	controls.layer = 20
 	add_child(controls)
 	player.controls = controls
+	controls.light_manager = world_light
 
 	# Two walking lanes per pavement. Six pedestrians is the official population
 	# budget for one camera-sized city segment.

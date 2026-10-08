@@ -12,6 +12,8 @@ func _init() -> void:
 		"res://scripts/world_light_manager.gd",
 		"res://scripts/street_furniture.gd",
 		"res://scripts/shelter_roof_overlay.gd",
+		"res://scripts/central_plaza.gd",
+		"res://scripts/central_pavilion_roof.gd",
 		"res://scripts/road_layer.gd",
 		"res://scripts/traffic_car.gd"
 	]
@@ -40,7 +42,9 @@ func _init() -> void:
 	var manager := instance.get_node_or_null("WorldActivityManager")
 	var light := instance.get_node_or_null("WorldLightManager")
 	var furniture := instance.get_node_or_null("StreetFurniture")
-	if npc == null or street == null or road == null or car == null or manager == null or light == null or furniture == null:
+	var plaza := instance.get_node_or_null("CentralStationPlaza")
+	var controls := instance.get_node_or_null("TouchControls")
+	if npc == null or street == null or road == null or car == null or manager == null or light == null or furniture == null or plaza == null or controls == null:
 		push_error("Living-street actors were not created")
 		quit(1)
 		return
@@ -111,6 +115,23 @@ func _init() -> void:
 		push_error("Shared world shadow direction was not configured")
 		quit(1)
 		return
+	var plaza_collisions := plaza.get_node_or_null("PlazaCollisions")
+	var pavilion_roof := plaza.get_node_or_null("PavilionRoofAndCanopies")
+	if plaza_collisions == null or plaza_collisions.get_child_count() != 11 or pavilion_roof == null or pavilion_roof.z_index <= player.z_index:
+		push_error("Central plaza layering or collisions were not created")
+		quit(1)
+		return
+	if controls.time_button_centers.size() != 4 or controls.light_manager != light:
+		push_error("Four-state lighting test controls were not configured")
+		quit(1)
+		return
+	var afternoon_offset: Vector2 = light.get_shadow_offset(20.0)
+	light.set_time_state("night", true)
+	if not light.is_night() or light.get_state_index() != 3 or light.get_shadow_offset(20.0).is_equal_approx(afternoon_offset):
+		push_error("Night state did not update world lighting and shadow direction")
+		quit(1)
+		return
+	light.set_time_state("afternoon", true)
 	var sitter := instance.get_node_or_null("PathNPC4")
 	var talker_a := instance.get_node_or_null("PathNPC5")
 	var talker_b := instance.get_node_or_null("PathNPC6")
@@ -167,5 +188,5 @@ func _init() -> void:
 		push_error("Pedestrian did not stop before pushing into the player")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.1.6 street-life correction smoke test passed")
+	print("4TH HEAVEN v0.1.7 central-station lighting smoke test passed")
 	quit(0)

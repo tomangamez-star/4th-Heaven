@@ -4,6 +4,7 @@ var light_manager
 
 func _ready() -> void:
 	z_index = 12
+	add_to_group("world_lit_visual")
 	queue_redraw()
 
 func _draw() -> void:
