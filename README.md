@@ -1,4 +1,4 @@
-# 4TH HEAVEN v0.1.7 — Central Station & Lighting Lab
+# 4TH HEAVEN v0.1.8 — Central District & Traffic Polish
 
 Procedural pedestrian-world prototype for **4TH HEAVEN**.
 
@@ -16,7 +16,7 @@ Procedural pedestrian-world prototype for **4TH HEAVEN**.
 - Three optimized routed NPCs using the same procedural doodle rig
 - Visible layered sidewalk with straight sections, corners and turns
 - Independent asphalt road layer with its own filter-ready drawing
-- First code-drawn vehicle following an authored traffic route
+- Three detailed PNG cars and one top-down city bus following authored lanes
 - Guaranteed populated opening camera with the road, pedestrians, car and props
 - Properly proportioned two-lane central-loop road and two-person sidewalks
 - Six pedestrians per camera-sized city segment
@@ -33,6 +33,10 @@ Procedural pedestrian-world prototype for **4TH HEAVEN**.
 - Morning, afternoon, evening and night world-lighting presets
 - Four temporary lighting-test buttons with smooth atmospheric transitions
 - Rotating shadow direction/length, night windows and active streetlights
+- Physical vehicle collisions, braking distance and queue-following traffic
+- Subtle vehicle suspension wobble, turn lean, braking dip and live shadows
+- Continuous NPC pavement movement with blocked-destination recovery
+- True overhead station roof and oval-fitted grass with no exposed soil ring
 - Shared late-afternoon sunlight direction for characters, cars and street props
 - Reusable behaviour destinations that return NPCs to their sidewalk routes
 - Clean central loop with temporary laboratory props removed

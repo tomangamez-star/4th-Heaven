@@ -6,7 +6,7 @@ const STATE_ORDER := ["morning", "afternoon", "evening", "night"]
 const LIGHT_STATES := {
 	"morning": {"tint": Color(1.0, 0.88, 0.72), "direction": Vector2(-0.72, 0.69), "length": 1.75, "strength": 0.24},
 	"afternoon": {"tint": Color(1.0, 1.0, 0.96), "direction": Vector2(0.58, 0.82), "length": 1.35, "strength": 0.30},
-	"evening": {"tint": Color(0.94, 0.69, 0.48), "direction": Vector2(0.82, 0.57), "length": 2.15, "strength": 0.35},
+	"evening": {"tint": Color(0.91, 0.80, 0.76), "direction": Vector2(0.82, 0.57), "length": 2.15, "strength": 0.35},
 	"night": {"tint": Color(0.34, 0.43, 0.65), "direction": Vector2(-0.42, 0.91), "length": 0.82, "strength": 0.18}
 }
 

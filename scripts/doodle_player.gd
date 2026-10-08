@@ -42,8 +42,8 @@ var route_points := PackedVector2Array()
 var route_index := 0
 var route_speed_scale := 0.58
 var route_pause_time := 0.0
-var route_pause_min := 0.35
-var route_pause_max := 1.05
+var route_pause_min := 0.0
+var route_pause_max := 0.0
 var world_activity_enabled := true
 var npc_redraw_time := 0.0
 var sidestep_time := 0.0
@@ -57,6 +57,8 @@ var behavior_look_direction := Vector2.DOWN
 var sit_spots := PackedVector2Array()
 var gather_spots := PackedVector2Array()
 var behavior_rng := RandomNumberGenerator.new()
+var behavior_last_position := Vector2.ZERO
+var behavior_stuck_time := 0.0
 var is_sitting := false
 var push_target
 var show_connectors := true
@@ -193,6 +195,8 @@ func start_behavior_at(kind: String, destination: Vector2, look_direction: Vecto
 func _begin_approach(kind: String, destination: Vector2) -> void:
 	behavior_state = "approach_" + kind
 	behavior_destination = destination
+	behavior_last_position = global_position
+	behavior_stuck_time = 0.0
 	is_sitting = false
 
 func _update_npc_behavior(delta: float) -> void:
@@ -201,6 +205,13 @@ func _update_npc_behavior(delta: float) -> void:
 		if distance > 15.0:
 			var direction := global_position.direction_to(behavior_destination)
 			_apply_controlled_motion(direction * 0.44, false, delta)
+			if global_position.distance_to(behavior_last_position) < 0.35:
+				behavior_stuck_time += delta
+			else:
+				behavior_stuck_time = 0.0
+				behavior_last_position = global_position
+			if behavior_stuck_time >= 1.05:
+				resume_nearest_route()
 			_queue_npc_redraw()
 			return
 		behavior_state = behavior_state.trim_prefix("approach_")
@@ -228,7 +239,7 @@ func _nearest_behavior_spot(spots: PackedVector2Array, maximum_distance: float) 
 	return nearest
 
 func _try_start_route_behavior() -> bool:
-	if behavior_cooldown > 0.0 or behavior_rng.randf() > 0.42:
+	if behavior_cooldown > 0.0 or behavior_rng.randf() > 0.12:
 		return false
 	if behavior_rng.randf() < 0.46 and not sit_spots.is_empty():
 		var seat := _nearest_behavior_spot(sit_spots, 390.0)
@@ -241,9 +252,7 @@ func _try_start_route_behavior() -> bool:
 			var side := -1.0 if get_instance_id() % 2 == 0 else 1.0
 			_begin_approach("talk", gathering + Vector2(side * 36.0, 0))
 			return true
-	behavior_state = "wait"
-	behavior_timer = behavior_rng.randf_range(1.8, 4.0)
-	return true
+	return false
 
 func _update_route_npc(delta: float) -> void:
 	npc_redraw_time -= delta
@@ -261,10 +270,9 @@ func _update_route_npc(delta: float) -> void:
 			_apply_controlled_motion(Vector2.ZERO, false, delta)
 			_queue_npc_redraw()
 			return
-		route_pause_time = randf_range(route_pause_min, route_pause_max)
-		_apply_controlled_motion(Vector2.ZERO, false, delta)
-		_queue_npc_redraw()
-		return
+		# Route nodes guide corners; they are not automatic stop signs.
+		target = route_points[route_index]
+		distance = global_position.distance_to(target)
 	var desired := global_position.direction_to(target)
 	var avoidance := Vector2.ZERO
 	var blocked_ahead := false
@@ -473,6 +481,24 @@ func _update_ragdoll(delta: float) -> void:
 			ragdoll_recovering = false
 			ragdoll_blend = 0.0
 			ragdoll_time = 0.0
+			if is_npc:
+				resume_nearest_route()
+
+func resume_nearest_route() -> void:
+	behavior_state = "walk"
+	is_sitting = false
+	behavior_stuck_time = 0.0
+	route_pause_time = 0.0
+	velocity = Vector2.ZERO
+	if route_points.is_empty(): return
+	var best_index := 0
+	var best_distance := INF
+	for index in route_points.size():
+		var distance := global_position.distance_squared_to(route_points[index])
+		if distance < best_distance:
+			best_distance = distance
+			best_index = index
+	route_index = best_index
 
 func _apply_spring(a: int, b: int, rest_length: float, strength: float, delta: float) -> void:
 	var difference := rag_positions[b] - rag_positions[a]

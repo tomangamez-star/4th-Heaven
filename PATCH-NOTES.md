@@ -1,4 +1,34 @@
-# 4TH HEAVEN v0.1.7 — Central Station & Lighting Lab
+# 4TH HEAVEN v0.1.8 — Central District & Traffic Polish
+
+## Added
+
+- One detailed transparent top-down car asset with red, blue and gold variants.
+- A separate long Japanese-style city bus asset.
+- Three cars and one bus across correctly directed traffic lanes.
+- Physical vehicle bodies, forward traffic sensing, safe spacing and queue braking.
+- Bus-specific speed, stopping distance, collision length and impact strength.
+- Subtle moving suspension wobble, turning lean, braking dip and live directional shadows.
+- Night headlights layered independently from the PNG artwork.
+- NPC blocked-destination detection and automatic nearest-route recovery.
+
+## Corrected
+
+- Removed automatic stops at every pedestrian route node.
+- Reduced random activity frequency and removed meaningless pavement waiting.
+- Moved gathering points away from the station and moved sitting points clear of benches.
+- Reset NPC activities and routes after ragdoll recovery.
+- Rebuilt the station as a roof-dominant true eagle-eye structure.
+- Fitted the grass beneath the complete inner oval to eliminate exposed soil strips.
+- Rebalanced Evening from strong tan/yellow to a softer neutral warm grade.
+
+## Preserved
+
+- Peak Afternoon and Night lighting states.
+- Existing player movement, ragdolls, NPC interactions, road scale and performance culling.
+
+---
+
+## Previous: v0.1.7 — Central Station & Lighting Lab
 
 ## Added
 

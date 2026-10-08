@@ -18,8 +18,12 @@ func _ready() -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	draw_style_box(_rounded_box(Color("#466f3f"), 38.0), Rect2(-1000, 170, 2000, 520))
-	draw_style_box(_rounded_box(Color("#5b8b4b"), 32.0), Rect2(-972, 192, 1944, 476))
+	# The lawn follows the actual inner loop instead of exposing a rectangular
+	# soil ring at the angled road corners. It slightly underlaps the sidewalk.
+	var lawn_outer := PackedVector2Array([Vector2(-1285, 155), Vector2(1285, 155), Vector2(1360, 245), Vector2(1160, 700), Vector2(-1160, 700), Vector2(-1360, 245)])
+	var lawn_inner := PackedVector2Array([Vector2(-1248, 182), Vector2(1248, 182), Vector2(1318, 252), Vector2(1132, 674), Vector2(-1132, 674), Vector2(-1318, 252)])
+	draw_colored_polygon(lawn_outer, Color("#466f3f"))
+	draw_colored_polygon(lawn_inner, Color("#5b8b4b"))
 	for x in range(-850, 851, 170):
 		for y in range(235, 651, 105):
 			var wave := sin(float(x) * 0.012 + float(y) * 0.017)
@@ -30,7 +34,7 @@ func _draw() -> void:
 	draw_rect(Rect2(-92, 170, 184, 520), Color("#aa9b83"), true)
 	draw_rect(Rect2(-78, 170, 156, 520), Color("#d0c1a7"), true)
 	for y in range(190, 681, 52): draw_line(Vector2(-76, y), Vector2(76, y), Color(0.30, 0.24, 0.18, 0.18), 2.0)
-	draw_circle(building_center, 285.0, Color("#c9b99e")); draw_circle(building_center, 260.0, Color("#d8c8ac"))
+	draw_circle(building_center, 275.0, Color("#c9b99e")); draw_circle(building_center, 250.0, Color("#d8c8ac"))
 	_draw_building_base()
 	for position in tree_positions: _draw_tree_base(position)
 	for position in bush_positions: _draw_bush(position)
@@ -43,25 +47,20 @@ func _rounded_box(color: Color, radius: float) -> StyleBoxFlat:
 
 func _draw_building_base() -> void:
 	var shadow: Vector2 = light_manager.get_shadow_offset(22.0) if is_instance_valid(light_manager) else Vector2(18, 24)
-	draw_rect(Rect2(building_center + shadow - Vector2(255, 132), Vector2(510, 264)), Color(0.08, 0.05, 0.03, 0.28), true)
-	draw_rect(Rect2(building_center - Vector2(245, 124), Vector2(490, 248)), Color("#443b37"), true)
-	draw_rect(Rect2(building_center - Vector2(232, 112), Vector2(464, 224)), Color("#ded0b8"), true)
-	# Dark closed entrance and striped gate imply the future subway.
-	draw_rect(Rect2(building_center + Vector2(-82, -112), Vector2(164, 74)), Color("#26343a"), true)
-	draw_rect(Rect2(building_center + Vector2(-72, -105), Vector2(144, 60)), Color("#162228"), true)
-	for x in range(-62, 63, 18): draw_line(building_center + Vector2(x, -104), building_center + Vector2(x, -47), Color("#87979a"), 4.0)
-	draw_rect(Rect2(building_center + Vector2(-94, -35), Vector2(188, 23)), Color("#a44a39"), true)
-	for x in range(-82, 83, 28): draw_line(building_center + Vector2(x, -32), building_center + Vector2(x + 16, -15), Color("#f0cf67"), 5.0)
-	var window_color := Color("#ffd477") if is_instance_valid(light_manager) and light_manager.is_night() else Color("#5f8790")
-	for x in [-168.0, 168.0]:
-		draw_rect(Rect2(building_center + Vector2(x - 42, -54), Vector2(84, 70)), Color("#4a5557"), true)
-		draw_rect(Rect2(building_center + Vector2(x - 35, -47), Vector2(70, 56)), window_color, true)
-		draw_line(building_center + Vector2(x, -46), building_center + Vector2(x, 8), Color("#d8c9ae"), 4.0)
-	draw_rect(Rect2(building_center + Vector2(-118, 45), Vector2(236, 42)), Color("#795443"), true)
-	draw_rect(Rect2(building_center + Vector2(-104, 53), Vector2(208, 27)), Color("#efe0c3"), true)
-	draw_circle(building_center + Vector2(0, 67), 11.0, Color("#b64b40"))
-	draw_line(building_center + Vector2(-45, 67), building_center + Vector2(-17, 67), Color("#486067"), 7.0, true)
-	draw_line(building_center + Vector2(17, 67), building_center + Vector2(45, 67), Color("#486067"), 7.0, true)
+	draw_rect(Rect2(building_center + shadow - Vector2(255, 126), Vector2(510, 252)), Color(0.08, 0.05, 0.03, 0.28), true)
+	# Only the foundation lip, entrance stair and closed gate remain visible;
+	# the roof overlay now owns almost the entire eagle-eye silhouette.
+	draw_rect(Rect2(building_center - Vector2(246, 116), Vector2(492, 232)), Color("#4a4039"), true)
+	draw_rect(Rect2(building_center - Vector2(233, 104), Vector2(466, 208)), Color("#cdbd9f"), true)
+	for step in 4:
+		draw_rect(Rect2(building_center + Vector2(-112 + step * 9, -164 + step * 12), Vector2(224 - step * 18, 12)), Color("#d9cbb1").darkened(float(step) * 0.035), true)
+	draw_rect(Rect2(building_center + Vector2(-84, -116), Vector2(168, 52)), Color("#17252b"), true)
+	for x in range(-72, 73, 18): draw_line(building_center + Vector2(x, -113), building_center + Vector2(x, -68), Color("#829397"), 4.0)
+	draw_rect(Rect2(building_center + Vector2(-98, -62), Vector2(196, 19)), Color("#a44a39"), true)
+	for x in range(-86, 87, 28): draw_line(building_center + Vector2(x, -59), building_center + Vector2(x + 15, -46), Color("#f0cf67"), 4.0)
+	if is_instance_valid(light_manager) and light_manager.is_night():
+		draw_circle(building_center + Vector2(-188, 98), 12.0, Color(1.0, 0.78, 0.36, 0.50))
+		draw_circle(building_center + Vector2(188, 98), 12.0, Color(1.0, 0.78, 0.36, 0.50))
 
 func _draw_tree_base(position: Vector2) -> void:
 	var shadow: Vector2 = light_manager.get_shadow_offset(25.0) if is_instance_valid(light_manager) else Vector2(16, 22)

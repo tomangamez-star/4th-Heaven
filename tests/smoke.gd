@@ -15,7 +15,11 @@ func _init() -> void:
 		"res://scripts/central_plaza.gd",
 		"res://scripts/central_pavilion_roof.gd",
 		"res://scripts/road_layer.gd",
-		"res://scripts/traffic_car.gd"
+		"res://scripts/traffic_car.gd",
+		"res://assets/vehicles/car_red.png",
+		"res://assets/vehicles/car_blue.png",
+		"res://assets/vehicles/car_gold.png",
+		"res://assets/vehicles/city_bus.png"
 	]
 	for path in required:
 		if not ResourceLoader.exists(path):
@@ -38,13 +42,16 @@ func _init() -> void:
 	var npc := instance.get_node_or_null("PathNPC2")
 	var street := instance.get_node_or_null("StreetWalk")
 	var road := instance.get_node_or_null("RoadLayer")
-	var car := instance.get_node_or_null("TrafficCar")
+	var car := instance.get_node_or_null("TrafficCarRed")
+	var second_car := instance.get_node_or_null("TrafficCarBlue")
+	var opposite_car := instance.get_node_or_null("TrafficCarGold")
+	var bus := instance.get_node_or_null("CityBus")
 	var manager := instance.get_node_or_null("WorldActivityManager")
 	var light := instance.get_node_or_null("WorldLightManager")
 	var furniture := instance.get_node_or_null("StreetFurniture")
 	var plaza := instance.get_node_or_null("CentralStationPlaza")
 	var controls := instance.get_node_or_null("TouchControls")
-	if npc == null or street == null or road == null or car == null or manager == null or light == null or furniture == null or plaza == null or controls == null:
+	if npc == null or street == null or road == null or car == null or second_car == null or opposite_car == null or bus == null or manager == null or light == null or furniture == null or plaza == null or controls == null:
 		push_error("Living-street actors were not created")
 		quit(1)
 		return
@@ -132,6 +139,12 @@ func _init() -> void:
 		quit(1)
 		return
 	light.set_time_state("afternoon", true)
+	light.set_time_state("evening", true)
+	if light.canvas_tint.color.g < 0.76 or light.canvas_tint.color.b < 0.70:
+		push_error("Evening colour grade is still excessively yellow")
+		quit(1)
+		return
+	light.set_time_state("afternoon", true)
 	var sitter := instance.get_node_or_null("PathNPC4")
 	var talker_a := instance.get_node_or_null("PathNPC5")
 	var talker_b := instance.get_node_or_null("PathNPC6")
@@ -170,12 +183,40 @@ func _init() -> void:
 		push_error("Ragdoll did not recover into controlled movement")
 		quit(1)
 		return
-	if car.route.size() < 8:
-		push_error("Authored traffic route was not configured")
+	if get_nodes_in_group("traffic").size() != 4 or car.route.size() < 8:
+		push_error("Three cars and one bus were not configured")
 		quit(1)
 		return
-	if car.scale.x < 1.2 or road.get_vehicle_route().is_empty():
-		push_error("Road and car scale upgrade was not applied")
+	if bus.vehicle_kind != "bus" or bus.sprite.texture == null or car.sprite.texture == null:
+		push_error("PNG vehicle artwork was not loaded")
+		quit(1)
+		return
+	if car.get_node_or_null("VehicleCollision") == null or bus.get_node_or_null("VehicleCollision") == null:
+		push_error("Physical traffic collisions were not created")
+		quit(1)
+		return
+	var saved_car_position: Vector2 = car.global_position
+	var saved_second_position: Vector2 = second_car.global_position
+	car.heading = Vector2.RIGHT
+	second_car.heading = Vector2.RIGHT
+	car.visible = true
+	second_car.visible = true
+	car.global_position = Vector2.ZERO
+	second_car.global_position = Vector2(72, 0)
+	if car._traffic_speed_limit() > 0.1:
+		push_error("Following traffic did not brake behind a vehicle")
+		quit(1)
+		return
+	car.global_position = saved_car_position
+	second_car.global_position = saved_second_position
+	if npc.route_pause_min != 0.0 or npc.route_pause_max != 0.0:
+		push_error("Automatic pavement-node pauses still exist")
+		quit(1)
+		return
+	npc.behavior_state = "approach_talk"
+	npc.resume_nearest_route()
+	if npc.behavior_state != "walk" or npc.route_pause_time != 0.0:
+		push_error("NPC route recovery did not clear a blocked activity")
 		quit(1)
 		return
 	var avoidance_npc := instance.get_node_or_null("PathNPC6")
@@ -188,5 +229,5 @@ func _init() -> void:
 		push_error("Pedestrian did not stop before pushing into the player")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.1.7 central-station lighting smoke test passed")
+	print("4TH HEAVEN v0.1.8 central-district traffic smoke test passed")
 	quit(0)

@@ -43,8 +43,9 @@ func _rebuild_layout() -> void:
 	_add_spot(bin_spots, 3, FURNITURE_OFFSET)
 	_add_spot(sign_spots, 4, 386.0)
 	# Social pockets are outside the pavement, never on asphalt or a walking lane.
-	_add_spot(gather_spots, 3, FURNITURE_OFFSET + 34.0)
-	_add_spot(gather_spots, 10, FURNITURE_OFFSET + 34.0)
+	# Keep social pockets clear of the new station footprint and prop collisions.
+	_add_spot(gather_spots, 1, FURNITURE_OFFSET + 34.0)
+	_add_spot(gather_spots, 6, FURNITURE_OFFSET + 34.0)
 
 func _add_spot(target: PackedVector2Array, route_index: int, offset: float) -> void:
 	var frame := _route_frame(route_index)
@@ -65,8 +66,8 @@ func get_sit_spots() -> PackedVector2Array:
 		var rotation: float = prop_rotations.get(bench, 0.0)
 		var tangent := Vector2.RIGHT.rotated(rotation)
 		var inward := Vector2.DOWN.rotated(rotation)
-		result.append(bench - inward * 58.0 - tangent * 28.0)
-		result.append(bench - inward * 58.0 + tangent * 28.0)
+		result.append(bench - inward * 72.0 - tangent * 28.0)
+		result.append(bench - inward * 72.0 + tangent * 28.0)
 	return result
 
 func get_gather_spots() -> PackedVector2Array: return gather_spots.duplicate()

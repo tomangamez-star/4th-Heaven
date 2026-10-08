@@ -105,10 +105,22 @@ func _ready() -> void:
 	segment_npcs[4].start_behavior_at("talk", gatherings[0] + Vector2(-40, 0), Vector2.RIGHT)
 	segment_npcs[5].start_behavior_at("talk", gatherings[0] + Vector2(40, 0), Vector2.LEFT)
 
-	var car = TrafficCarScript.new()
-	car.name = "TrafficCar"
-	add_child(car)
-	car.configure(road.get_vehicle_route(-95.0), 3)
+	# A small traffic pack: two same-direction cars and a bus share one lane,
+	# while the third car uses the opposite lane and route direction.
+	var traffic_specs := [
+		["TrafficCarRed", "car", 0, -95.0, 3, false],
+		["TrafficCarBlue", "car", 1, -95.0, 9, false],
+		["CityBus", "bus", 0, -95.0, 14, false],
+		["TrafficCarGold", "car", 2, 95.0, 5, true]
+	]
+	for spec in traffic_specs:
+		var vehicle = TrafficCarScript.new()
+		vehicle.name = spec[0]
+		vehicle.setup(spec[1], spec[2])
+		add_child(vehicle)
+		var vehicle_route: PackedVector2Array = road.get_vehicle_route(spec[3])
+		if spec[5]: vehicle_route.reverse()
+		vehicle.configure(vehicle_route, spec[4])
 
 	var activity_manager = ActivityManagerScript.new()
 	activity_manager.name = "WorldActivityManager"
