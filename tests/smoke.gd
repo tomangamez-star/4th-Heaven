@@ -17,6 +17,9 @@ func _init() -> void:
 		"res://scripts/road_layer.gd",
 		"res://scripts/traffic_car.gd",
 		"res://scripts/vehicle_impact_effect.gd",
+		"res://scripts/city_extension.gd",
+		"res://scripts/traffic_junction.gd",
+		"res://scripts/driveable_car.gd",
 		"res://assets/vehicles/car_red.png",
 		"res://assets/vehicles/car_blue.png",
 		"res://assets/vehicles/car_gold.png",
@@ -52,15 +55,23 @@ func _init() -> void:
 	var furniture := instance.get_node_or_null("StreetFurniture")
 	var plaza := instance.get_node_or_null("CentralStationPlaza")
 	var controls := instance.get_node_or_null("TouchControls")
+	var extension := instance.get_node_or_null("EastDistrictExtension")
+	var junction := instance.get_node_or_null("EastTrafficJunction")
+	var player_car := instance.get_node_or_null("PlayerCar")
+	var junction_car := instance.get_node_or_null("JunctionTrafficCar")
 	if npc == null or street == null or road == null or car == null or second_car == null or opposite_car == null or bus == null or manager == null or light == null or furniture == null or plaza == null or controls == null:
 		push_error("Living-street actors were not created")
+		quit(1)
+		return
+	if extension == null or junction == null or player_car == null or junction_car == null:
+		push_error("Two-section city expansion actors were not created")
 		quit(1)
 		return
 	if instance.get_node_or_null("BrickWall") != null or instance.get_node_or_null("MovableCrate") != null:
 		push_error("Temporary laboratory props still exist in the central loop")
 		quit(1)
 		return
-	if get_nodes_in_group("npc").size() != 6 or npc.route_points.size() < 8:
+	if get_nodes_in_group("npc").size() != 7 or npc.route_points.size() < 8:
 		push_error("Routed pedestrian population was not configured")
 		quit(1)
 		return
@@ -188,7 +199,7 @@ func _init() -> void:
 		push_error("Ragdoll did not recover into controlled movement")
 		quit(1)
 		return
-	if get_nodes_in_group("traffic").size() != 4 or car.route.size() < 8:
+	if get_nodes_in_group("traffic").size() != 5 or car.route.size() < 8 or junction_car.route.size() < 8:
 		push_error("Three cars and one bus were not configured")
 		quit(1)
 		return
@@ -212,6 +223,34 @@ func _init() -> void:
 		push_error("Streetlight glow sources do not match lamp fixtures")
 		quit(1)
 		return
+	if get_nodes_in_group("traffic_signal").size() != 1 or player_car.get_node_or_null("PlayerCarCollision") == null:
+		push_error("Junction signals or enterable parked car were not configured")
+		quit(1)
+		return
+	junction.horizontal_green = false
+	var saved_junction_position: Vector2 = junction_car.global_position
+	var saved_junction_heading: Vector2 = junction_car.heading
+	junction_car.global_position = junction.CENTER - Vector2(190, 0)
+	junction_car.heading = Vector2.RIGHT
+	if junction.speed_limit_for(junction_car) > 0.1:
+		push_error("Red traffic signal did not stop an approaching car")
+		quit(1)
+		return
+	junction_car.global_position = saved_junction_position
+	junction_car.heading = saved_junction_heading
+	var saved_player_position: Vector2 = player.global_position
+	player.global_position = player_car.global_position + Vector2(80, 0)
+	player_car._enter_vehicle()
+	if not player_car.occupied or player.visible:
+		push_error("Player could not enter the parked test car")
+		quit(1)
+		return
+	player_car._exit_vehicle()
+	if player_car.occupied or not player.visible:
+		push_error("Player could not exit the parked test car")
+		quit(1)
+		return
+	player.global_position = saved_player_position
 	var saved_car_position: Vector2 = car.global_position
 	var saved_second_position: Vector2 = second_car.global_position
 	car.heading = Vector2.RIGHT
@@ -246,5 +285,5 @@ func _init() -> void:
 		push_error("Pedestrian did not stop before pushing into the player")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.2.0 roadlight and vehicle proportion smoke test passed")
+	print("4TH HEAVEN v0.2.1 junction, traffic and driveable-car smoke test passed")
 	quit(0)

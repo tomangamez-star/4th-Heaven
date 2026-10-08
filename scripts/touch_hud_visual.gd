@@ -10,6 +10,7 @@ func _draw() -> void:
 	var rc: Vector2 = controls.run_center
 	var rag: Vector2 = controls.ragdoll_center
 	var push: Vector2 = controls.push_center
+	var interact: Vector2 = controls.interact_center
 	_draw_time_buttons()
 	draw_circle(jc, 86.0, Color(0.035, 0.045, 0.055, 0.34))
 	draw_circle(jc, 84.0, Color(0.84, 0.94, 0.95, 0.10), false, 3.0)
@@ -43,6 +44,14 @@ func _draw() -> void:
 		draw_line(push + Vector2(-24, 0), push + Vector2(1, 0), Color(0.97, 0.78, 0.61, 0.92), 9.0, true)
 		draw_line(push + Vector2(-18, -13), push + Vector2(0, 0), Color(0.97, 0.78, 0.61, 0.92), 6.0, true)
 		draw_line(push + Vector2(-18, 13), push + Vector2(0, 0), Color(0.97, 0.78, 0.61, 0.92), 6.0, true)
+
+	if controls.interact_visible:
+		draw_circle(interact, 51.0, Color(0.04, 0.30, 0.36, 0.68))
+		draw_circle(interact, 49.0, Color(0.56, 0.94, 0.98, 0.34), false, 3.0)
+		# Tiny top-down car/door glyph for enter and exit.
+		draw_style_box(_time_box(Color("#dcebee"), Color("#213b42")), Rect2(interact - Vector2(16, 27), Vector2(32, 54)))
+		draw_rect(Rect2(interact + Vector2(-10, -15), Vector2(20, 15)), Color("#537580"), true)
+		draw_line(interact + Vector2(17, -4), interact + Vector2(31, -4), Color(0.91, 1.0, 1.0, 0.90), 5.0, true)
 
 func _draw_time_buttons() -> void:
 	var active := 1

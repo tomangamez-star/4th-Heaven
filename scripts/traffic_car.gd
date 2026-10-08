@@ -26,6 +26,7 @@ var travel_phase := 0.0
 var impact_jolt := 0.0
 var headlight: PointLight2D
 var tail_light: PointLight2D
+var braking := false
 
 func setup(kind: String, variant: int = 0) -> void:
 	vehicle_kind = kind
@@ -109,10 +110,15 @@ func _physics_process(delta: float) -> void:
 	var corner_speed := 125.0 if vehicle_kind == "bus" else 145.0
 	var target_speed := lerpf(cruise_speed, corner_speed, clampf(corner_angle / 1.10, 0.0, 1.0))
 	target_speed = minf(target_speed, _traffic_speed_limit())
+	target_speed = minf(target_speed, _pedestrian_speed_limit())
+	for traffic_light in get_tree().get_nodes_in_group("traffic_signal"):
+		if traffic_light.has_method("speed_limit_for"): target_speed = minf(target_speed, traffic_light.speed_limit_for(self))
 	previous_speed = current_speed
 	var acceleration := 125.0 if vehicle_kind == "bus" else 210.0
 	var braking := 330.0 if vehicle_kind == "bus" else 440.0
 	current_speed = move_toward(current_speed, target_speed, (acceleration if target_speed > current_speed else braking) * delta)
+	self.braking = target_speed < previous_speed - 8.0 or (target_speed <= 1.0 and previous_speed > 1.0)
+	if is_instance_valid(tail_light): tail_light.energy = 1.35 if self.braking else 0.55
 	impact_jolt = move_toward(impact_jolt, 0.0, delta * 4.2)
 	heading = heading.lerp(desired, 1.0 - exp(-4.2 * delta)).normalized()
 	velocity = heading * current_speed
@@ -122,20 +128,42 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _traffic_speed_limit() -> float:
-	var nearest := INF
+	var nearest_gap := INF
+	var lead_speed := cruise_speed
+	var own_half_length := 188.0 if vehicle_kind == "bus" else 121.0
 	for candidate in get_tree().get_nodes_in_group("traffic"):
 		if candidate == self or not candidate.visible: continue
 		var to_other: Vector2 = candidate.global_position - global_position
 		var distance := to_other.length()
-		if distance < 1.0 or distance > safe_follow_distance + 150.0: continue
+		if distance < 1.0 or distance > 620.0: continue
 		if heading.dot(to_other.normalized()) < 0.70: continue
 		var lateral := absf(to_other.cross(heading))
-		if lateral > 62.0: continue
+		if lateral > 76.0: continue
 		if candidate.heading.dot(heading) < 0.45: continue
-		nearest = minf(nearest, distance)
+		var candidate_half_length := 188.0 if candidate.vehicle_kind == "bus" else 121.0
+		var gap := distance - own_half_length - candidate_half_length
+		if gap < nearest_gap:
+			nearest_gap = gap
+			lead_speed = candidate.current_speed
+	if is_inf(nearest_gap): return cruise_speed
+	var desired_gap := 105.0 + current_speed * 0.34
+	if nearest_gap <= 42.0: return 0.0
+	var gap_speed := cruise_speed * clampf((nearest_gap - 42.0) / desired_gap, 0.0, 1.0)
+	return minf(gap_speed, lead_speed + maxf(0.0, nearest_gap - desired_gap) * 0.45)
+
+func _pedestrian_speed_limit() -> float:
+	var nearest := INF
+	for doodle in get_tree().get_nodes_in_group("doodles"):
+		if not doodle.visible or doodle.ragdoll_active: continue
+		var offset: Vector2 = doodle.global_position - global_position
+		var forward := heading.dot(offset)
+		if forward <= 0.0 or forward > 520.0: continue
+		var lateral := absf(offset.cross(heading))
+		if lateral > 105.0: continue
+		nearest = minf(nearest, forward)
 	if is_inf(nearest): return cruise_speed
-	if nearest <= safe_follow_distance * 0.62: return 0.0
-	return cruise_speed * clampf((nearest - safe_follow_distance * 0.62) / (safe_follow_distance * 0.72), 0.0, 1.0)
+	if nearest <= 205.0: return 0.0
+	return cruise_speed * clampf((nearest - 205.0) / 250.0, 0.0, 1.0)
 
 func _update_suspension(delta: float, corner_angle: float) -> void:
 	travel_phase += current_speed * delta * 0.025
@@ -181,6 +209,12 @@ func _draw() -> void:
 		var rear_y := -front_y
 		draw_circle(Vector2(-width, rear_y), 7.0, Color(1.0, 0.12, 0.08, 0.90))
 		draw_circle(Vector2(width, rear_y), 7.0, Color(1.0, 0.12, 0.08, 0.90))
+	# Brake lamps remain readable by day and flare strongly when traffic slows.
+	var lamp_y := 188.0 if vehicle_kind == "bus" else 121.0
+	var lamp_x := 48.0 if vehicle_kind == "bus" else 41.0
+	var brake_color := Color(1.0, 0.08, 0.045, 1.0) if braking else Color(0.62, 0.055, 0.035, 0.82)
+	draw_circle(Vector2(-lamp_x, lamp_y), 10.0 if braking else 6.0, brake_color)
+	draw_circle(Vector2(lamp_x, lamp_y), 10.0 if braking else 6.0, brake_color)
 
 func _shadow_box() -> StyleBoxFlat:
 	var box := StyleBoxFlat.new(); box.bg_color = Color(0.05, 0.045, 0.04, 0.30)

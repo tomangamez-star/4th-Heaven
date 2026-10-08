@@ -1,4 +1,29 @@
-# 4TH HEAVEN v0.2.0 — Roadlight & Vehicle Proportion Lock
+# 4TH HEAVEN v0.2.1 — First District Expansion & Smart Traffic
+
+## Added
+
+- Added only two deliberate world sections beyond the central oval: an east four-way junction and a compact parking side street.
+- Added zebra crossings, four visible traffic signals and an eight-second alternating signal cycle.
+- Added one dedicated crossing NPC so cars must react to a real pedestrian in the road.
+- Added the first parked player car with contextual enter/exit control, mobile driving and keyboard driving.
+- Added one outer-section traffic car to exercise the new junction route.
+
+## Improved
+
+- Rebuilt following distance around the vehicles' visible lengths instead of their older compact hit areas.
+- Added speed-dependent following gaps and lead-car speed propagation for smooth chain braking.
+- Added forward pedestrian awareness with progressive slowing and a complete stop before contact.
+- Added traffic-signal speed limits and strong brake-light flare whenever a vehicle slows or queues.
+
+## Preserved
+
+- Existing doodle impact collision, ragdoll hit response and impact effects.
+- Central oval artwork, park/road lights, vehicle scale and wide night headlights.
+- Six-NPC budget inside the original central segment; the crossing NPC belongs to the new section.
+
+---
+
+## Previous: v0.2.0 — Roadlight & Vehicle Proportion Lock
 
 ## Improved
 

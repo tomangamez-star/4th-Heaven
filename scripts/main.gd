@@ -10,6 +10,9 @@ const TrafficCarScript = preload("res://scripts/traffic_car.gd")
 const WorldLightScript = preload("res://scripts/world_light_manager.gd")
 const StreetFurnitureScript = preload("res://scripts/street_furniture.gd")
 const CentralPlazaScript = preload("res://scripts/central_plaza.gd")
+const CityExtensionScript = preload("res://scripts/city_extension.gd")
+const TrafficJunctionScript = preload("res://scripts/traffic_junction.gd")
+const DriveableCarScript = preload("res://scripts/driveable_car.gd")
 
 const NPC_STYLES := [
 	[Color("#d76883"), Color("#46202d"), Color("#633823"), Color("#9d6845")],
@@ -50,6 +53,14 @@ func _ready() -> void:
 	furniture.configure(street_walk.get_route())
 	add_child(furniture)
 
+	var city_extension = CityExtensionScript.new()
+	city_extension.name = "EastDistrictExtension"
+	add_child(city_extension)
+
+	var junction = TrafficJunctionScript.new()
+	junction.name = "EastTrafficJunction"
+	add_child(junction)
+
 	var player = PlayerScript.new()
 	player.name = "DoodlePlayer"
 	player.add_to_group("doodles")
@@ -76,6 +87,12 @@ func _ready() -> void:
 	add_child(controls)
 	player.controls = controls
 	controls.light_manager = world_light
+
+	var player_car = DriveableCarScript.new()
+	player_car.player = player
+	player_car.controls = controls
+	player_car.global_position = Vector2(2040, -700)
+	add_child(player_car)
 
 	# Two walking lanes per pavement. Six pedestrians is the official population
 	# budget for one camera-sized city segment.
@@ -106,6 +123,20 @@ func _ready() -> void:
 	segment_npcs[4].start_behavior_at("talk", gatherings[0] + Vector2(-40, 0), Vector2.RIGHT)
 	segment_npcs[5].start_behavior_at("talk", gatherings[0] + Vector2(40, 0), Vector2.LEFT)
 
+	# The first outer-section pedestrian repeatedly uses the west zebra crossing,
+	# giving traffic a real moving person to detect and yield for.
+	var crossing_npc = PlayerScript.new()
+	crossing_npc.name = "CrosswalkNPC"
+	crossing_npc.is_npc = true
+	crossing_npc.clothing_color = Color("#58a59a")
+	crossing_npc.clothing_dark = Color("#173b3a")
+	crossing_npc.hair_color = Color("#4a2d23")
+	crossing_npc.hair_highlight = Color("#956449")
+	crossing_npc.add_to_group("doodles")
+	crossing_npc.add_to_group("npc")
+	add_child(crossing_npc)
+	crossing_npc.configure_route(PackedVector2Array([Vector2(2060, 115), Vector2(2060, 760)]), 0, 0.50)
+
 	# A small traffic pack: two same-direction cars and a bus share one lane,
 	# while the third car uses the opposite lane and route direction.
 	var traffic_specs := [
@@ -122,6 +153,14 @@ func _ready() -> void:
 		var vehicle_route: PackedVector2Array = road.get_vehicle_route(spec[3])
 		if spec[5]: vehicle_route.reverse()
 		vehicle.configure(vehicle_route, spec[4])
+
+	# One additional road car proves the junction signals and outer-section
+	# traffic without increasing the central segment's pedestrian budget.
+	var junction_car = TrafficCarScript.new()
+	junction_car.name = "JunctionTrafficCar"
+	junction_car.setup("car", 1)
+	add_child(junction_car)
+	junction_car.configure(city_extension.get_extension_traffic_route(), 1)
 
 	var activity_manager = ActivityManagerScript.new()
 	activity_manager.name = "WorldActivityManager"

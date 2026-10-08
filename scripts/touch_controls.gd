@@ -5,15 +5,19 @@ var run_pressed := false
 var ragdoll_requested := false
 var push_requested := false
 var push_visible := false
+var interact_requested := false
+var interact_visible := false
 var joystick_touch := -1
 var run_touch := -1
 var ragdoll_touch := -1
 var push_touch := -1
+var interact_touch := -1
 var joystick_center := Vector2.ZERO
 var joystick_knob := Vector2.ZERO
 var run_center := Vector2.ZERO
 var ragdoll_center := Vector2.ZERO
 var push_center := Vector2.ZERO
+var interact_center := Vector2.ZERO
 var light_manager
 var time_button_centers: Array[Vector2] = []
 const TIME_STATES := ["morning", "afternoon", "evening", "night"]
@@ -41,6 +45,7 @@ func _reflow() -> void:
 	run_center = Vector2(viewport_size.x - 120, viewport_size.y - 125)
 	ragdoll_center = Vector2(viewport_size.x - 120, viewport_size.y - 265)
 	push_center = Vector2(viewport_size.x - 260, viewport_size.y - 125)
+	interact_center = Vector2(viewport_size.x - 260, viewport_size.y - 250)
 	time_button_centers.clear()
 	var start_x := viewport_size.x * 0.5 - 156.0
 	for i in TIME_STATES.size():
@@ -57,6 +62,9 @@ func _input(event: InputEvent) -> void:
 			elif event.position.x < viewport_size.x * 0.48 and joystick_touch < 0:
 				joystick_touch = event.index
 				_update_joystick(event.position)
+			elif interact_visible and event.position.distance_to(interact_center) <= RUN_RADIUS * 1.35 and interact_touch < 0:
+				interact_touch = event.index
+				interact_requested = true
 			elif push_visible and event.position.distance_to(push_center) <= RUN_RADIUS * 1.35 and push_touch < 0:
 				push_touch = event.index
 				push_requested = true
@@ -78,6 +86,8 @@ func _input(event: InputEvent) -> void:
 				ragdoll_touch = -1
 			if event.index == push_touch:
 				push_touch = -1
+			if event.index == interact_touch:
+				interact_touch = -1
 		hud.queue_redraw()
 	elif event is InputEventScreenDrag:
 		if event.index == joystick_touch:
@@ -111,6 +121,17 @@ func set_push_visible(visible: bool) -> void:
 		push_requested = false
 	if is_instance_valid(hud):
 		hud.queue_redraw()
+
+func consume_interact_request() -> bool:
+	if not interact_requested: return false
+	interact_requested = false
+	return true
+
+func set_interact_visible(visible: bool) -> void:
+	if interact_visible == visible: return
+	interact_visible = visible
+	if not visible: interact_requested = false
+	if is_instance_valid(hud): hud.queue_redraw()
 
 func _time_button_at(position: Vector2) -> int:
 	for i in time_button_centers.size():
