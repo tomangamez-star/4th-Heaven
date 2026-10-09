@@ -26,11 +26,7 @@ func speed_limit_for(vehicle: Node) -> float:
 	return vehicle.cruise_speed * clampf((forward_distance - 235.0) / 230.0, 0.0, 1.0)
 
 func _draw() -> void:
-	var paint := Color(0.95, 0.92, 0.82, 0.76)
-	for offset in [-245.0, 245.0]:
-		for stripe in 6:
-			draw_rect(Rect2(CENTER + Vector2(offset - 52, -142 + stripe * 48), Vector2(104, 24)), paint, true)
-			draw_rect(Rect2(CENTER + Vector2(-142 + stripe * 48, offset - 52), Vector2(24, 104)), paint, true)
+	# Crosswalk paint is baked into the connected PNG road chunks.
 	_draw_signal(CENTER + Vector2(-255, -255), horizontal_green)
 	_draw_signal(CENTER + Vector2(255, 255), horizontal_green)
 	_draw_signal(CENTER + Vector2(255, -255), not horizontal_green)

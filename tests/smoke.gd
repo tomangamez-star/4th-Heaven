@@ -294,5 +294,10 @@ func _init() -> void:
 		push_error("Pedestrian did not stop before pushing into the player")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.2.3 seamless-junction and driving-control smoke test passed")
+	var raster := instance.get_node_or_null("RasterRoads")
+	if raster == null or raster.sprites.is_empty() or street.visible or road.visible or extension.visible:
+		push_error("PNG road layer missing or old vector roads still visible")
+		quit(1)
+		return
+	print("4TH HEAVEN v0.2.4 PNG roads and wheelbase driving smoke test passed")
 	quit(0)

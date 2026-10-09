@@ -79,6 +79,7 @@ func _ready() -> void:
 	add_child(visual)
 
 	var collider := CollisionShape2D.new()
+	collider.name = "CollisionShape2D"
 	var shape := CircleShape2D.new()
 	# Matches the visible head/limb footprint so normal doodles never overlap.
 	shape.radius = 33.0

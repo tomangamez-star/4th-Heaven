@@ -80,13 +80,13 @@ func _input(event: InputEvent) -> void:
 			elif interact_visible and event.position.distance_to(interact_center) <= RUN_RADIUS * 1.35 and interact_touch < 0:
 				interact_touch = event.index
 				interact_requested = true
-			elif push_visible and event.position.distance_to(push_center) <= RUN_RADIUS * 1.35 and push_touch < 0:
+			elif not driving_mode and push_visible and event.position.distance_to(push_center) <= RUN_RADIUS * 1.35 and push_touch < 0:
 				push_touch = event.index
 				push_requested = true
-			elif event.position.distance_to(ragdoll_center) <= RUN_RADIUS * 1.35 and ragdoll_touch < 0:
+			elif not driving_mode and event.position.distance_to(ragdoll_center) <= RUN_RADIUS * 1.35 and ragdoll_touch < 0:
 				ragdoll_touch = event.index
 				ragdoll_requested = true
-			elif event.position.distance_to(run_center) <= RUN_RADIUS * 1.55 and run_touch < 0:
+			elif not driving_mode and event.position.distance_to(run_center) <= RUN_RADIUS * 1.55 and run_touch < 0:
 				run_touch = event.index
 				run_pressed = true
 		else:

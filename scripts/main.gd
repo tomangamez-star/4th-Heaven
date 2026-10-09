@@ -13,6 +13,7 @@ const CentralPlazaScript = preload("res://scripts/central_plaza.gd")
 const CityExtensionScript = preload("res://scripts/city_extension.gd")
 const TrafficJunctionScript = preload("res://scripts/traffic_junction.gd")
 const DriveableCarScript = preload("res://scripts/driveable_car.gd")
+const RasterRoadScript = preload("res://scripts/raster_roads.gd")
 
 const NPC_STYLES := [
 	[Color("#d76883"), Color("#46202d"), Color("#633823"), Color("#9d6845")],
@@ -42,6 +43,12 @@ func _ready() -> void:
 	road.name = "RoadLayer"
 	add_child(road)
 	road.configure(street_walk.get_route())
+	# Retain routes for NPCs/traffic; replace their old drawing layers with PNGs.
+	street_walk.hide()
+	road.hide()
+	var raster_roads = RasterRoadScript.new()
+	raster_roads.name = "RasterRoads"
+	add_child(raster_roads)
 
 	var central_plaza = CentralPlazaScript.new()
 	central_plaza.name = "CentralStationPlaza"
@@ -56,6 +63,7 @@ func _ready() -> void:
 	var city_extension = CityExtensionScript.new()
 	city_extension.name = "EastDistrictExtension"
 	add_child(city_extension)
+	city_extension.hide()
 
 	var junction = TrafficJunctionScript.new()
 	junction.name = "EastTrafficJunction"
@@ -91,7 +99,8 @@ func _ready() -> void:
 	var player_car = DriveableCarScript.new()
 	player_car.player = player
 	player_car.controls = controls
-	player_car.global_position = Vector2(1710, -790)
+	player_car.road_surface = raster_roads
+	player_car.global_position = Vector2(1665, -810)
 	add_child(player_car)
 
 	# Two walking lanes per pavement. Six pedestrians is the official population

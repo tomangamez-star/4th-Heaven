@@ -1,4 +1,16 @@
-# 4TH HEAVEN v0.2.3 — Seamless Roads & Controlled Driving
+# 4TH HEAVEN v0.2.4 — PNG Roads & Wheelbase Driving
+
+Apply this modified-files patch over v0.2.3, preserving the `scripts/`,
+`assets/`, `tests/`, and `tools/` directories. The game now displays 17 PNG
+road chunks instead of the old vector road and pavement drawing layers.
+`assets/roads/overview.png` shows the joined layout without park props.
+
+Driving: joystick up accelerates, down brakes and then reverses after a short
+stop; right-side arrows steer. Release to coast. Exit works below 40 units/sec
+and only when a free standing position exists beside the car.
+
+Validation: `godot --headless --path . --script res://tests/smoke.gd` and
+`godot --headless --path . --script res://tests/driving_regression.gd`.
 
 Procedural pedestrian-world prototype for **4TH HEAVEN**.
 

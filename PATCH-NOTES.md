@@ -1,4 +1,24 @@
-# 4TH HEAVEN v0.2.3 — Seamless Roads & Controlled Driving
+# 4TH HEAVEN v0.2.4 — PNG Roads & Wheelbase Driving
+
+- Added generated HD asphalt and paving artwork, baked into 17 connected PNG map chunks.
+- Disabled the old vector oval, pavement and extension drawing layers while retaining their traffic/NPC route data.
+- All road surfaces are united before external curbs are created; no join rectangles or internal border seams.
+- Repositioned the parking entrance below the bays, with a clear reversing aisle.
+- Nearby PNG chunks load around the active camera; distant sprites release their textures.
+- Replaced fixed-rate rotation with speed/wheelbase steering, grip, gradual acceleration, coast drag and off-road slowdown.
+- Opposite throttle brakes before reverse; stationary cars cannot pivot.
+- Removed post-move car position clamping; swept collisions stop motion at obstacles.
+- Named the player collider explicitly and disabled all player collision shapes on entry; added mutual driver/car collision exceptions.
+- Detached the vehicle camera transform from car rotation, bounded camera lag to 48 units, and reset camera handoffs.
+- Exit checks for a clear standing position and requires low speed.
+- Added frame-by-frame driving tests for displacement, camera tracking, wall blocking, reverse and driver collision.
+- Packaged files with their original directory paths preserved.
+
+Validation covers automated behavior and the raster artwork overview. Mobile handling still needs device feedback.
+
+---
+
+## Previous: v0.2.3 — Seamless Roads & Controlled Driving
 
 ## Corrected
 
