@@ -76,7 +76,7 @@ func _init() -> void:
 		push_error("Temporary laboratory props still exist in the central loop")
 		quit(1)
 		return
-	if get_nodes_in_group("npc").size() != 7 or npc.route_points.size() < 8:
+	if get_nodes_in_group("npc").size() != 6 or npc.route_points.size() < 8:
 		push_error("Routed pedestrian population was not configured")
 		quit(1)
 		return
@@ -290,8 +290,9 @@ func _init() -> void:
 	avoidance_npc.route_points = PackedVector2Array([player.global_position + Vector2(0, 200)])
 	avoidance_npc.route_index = 0
 	avoidance_npc._update_route_npc(1.0 / 60.0)
-	if not avoidance_npc.player_blocked_last_frame or avoidance_npc.velocity.length() > 0.1:
-		push_error("Pedestrian did not stop before pushing into the player")
+	var toward_player: float = avoidance_npc.velocity.normalized().dot(avoidance_npc.global_position.direction_to(player.global_position)) if avoidance_npc.velocity.length() > 0.1 else 0.0
+	if not avoidance_npc.player_blocked_last_frame or toward_player > 0.45:
+		push_error("Pedestrian did not proactively avoid the player")
 		quit(1)
 		return
 	var raster := instance.get_node_or_null("RasterRoads")
@@ -299,5 +300,5 @@ func _init() -> void:
 		push_error("PNG road layer missing or old vector roads still visible")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.2.4 PNG roads and wheelbase driving smoke test passed")
+	print("4TH HEAVEN v0.2.5 raster environment and driving smoke test passed")
 	quit(0)

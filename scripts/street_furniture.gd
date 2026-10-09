@@ -1,6 +1,7 @@
 extends Node2D
 
 const ShelterRoofScript = preload("res://scripts/shelter_roof_overlay.gd")
+const STREETLIGHT_TEXTURE = preload("res://assets/environment/streetlight_top.png")
 const ROAD_HALF_WIDTH := 190.0
 const FURNITURE_OFFSET := 430.0
 
@@ -110,8 +111,6 @@ func _shadow_color(alpha_scale: float = 1.0) -> Color:
 func _draw() -> void:
 	for position in bench_spots: _draw_bench(position, prop_rotations.get(position, 0.0))
 	for position in bus_stop_spots: _draw_bus_stop_base(position, prop_rotations.get(position, 0.0))
-	for position in streetlight_spots: _draw_streetlight(position)
-	for position in roadlight_spots: _draw_streetlight(position)
 	for position in bin_spots: _draw_bin(position)
 	for position in sign_spots: _draw_bus_sign(position)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -136,23 +135,6 @@ func _draw_bus_stop_base(position: Vector2, rotation: float) -> void:
 	draw_rect(Rect2(-68, 12, 136, 27), Color("#513523"), true)
 	draw_rect(Rect2(-63, 8, 126, 24), Color("#a96840"), true)
 	for x in [-48.0, 0.0, 48.0]: draw_line(Vector2(x, 11), Vector2(x, 29), Color("#d29865"), 3.0, true)
-
-func _draw_streetlight(position: Vector2) -> void:
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if is_instance_valid(light_manager) and light_manager.is_night():
-		draw_circle(position + Vector2(0, -28), 58.0, Color(1.0, 0.72, 0.30, 0.20))
-		draw_circle(position + Vector2(0, -28), 31.0, Color(1.0, 0.84, 0.48, 0.32))
-	var end := position + _shadow_offset(27.0)
-	var direction := position.direction_to(end); var perpendicular := Vector2(-direction.y, direction.x)
-	# One polygon and alpha pass prevents pole/lamp shadow stacking.
-	var shadow_shape := PackedVector2Array([position - perpendicular * 5.0, position + perpendicular * 5.0, end + perpendicular * 11.0 + direction * 7.0, end - perpendicular * 11.0 + direction * 7.0])
-	draw_colored_polygon(shadow_shape, _shadow_color(0.82))
-	# Readable eagle-eye lamp: base, short arm, housing and luminous lens.
-	draw_circle(position, 13.0, Color("#282d33")); draw_circle(position, 8.0, Color("#69757d"))
-	draw_line(position + Vector2(0, -4), position + Vector2(0, -25), Color("#343b41"), 9.0, true)
-	draw_line(position + Vector2(0, -24), position + Vector2(13, -31), Color("#343b41"), 8.0, true)
-	draw_style_box(_lamp_box(), Rect2(position + Vector2(5, -41), Vector2(31, 20)))
-	draw_circle(position + Vector2(21, -31), 7.0, Color("#fff0b2") if is_instance_valid(light_manager) and light_manager.is_night() else Color("#c2c5ba"))
 
 func _draw_bin(position: Vector2) -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -211,11 +193,18 @@ func _lamp_box() -> StyleBoxFlat:
 func _create_street_lights() -> void:
 	var texture := _radial_light_texture()
 	var all_lights := streetlight_spots + roadlight_spots
+	var overlay := Node2D.new(); overlay.name = "StreetlightArtOverlay"
+	overlay.z_as_relative = false; overlay.z_index = 14; add_child(overlay)
 	for index in all_lights.size():
 		var fixture_position: Vector2 = all_lights[index]
-		var glow_position := fixture_position + Vector2(21, -31)
+		var direction := fixture_position.direction_to(_nearest_route_point(fixture_position))
+		var art := Sprite2D.new(); art.name = "StreetlightArt%d" % index
+		art.texture = STREETLIGHT_TEXTURE; art.centered = false
+		art.offset = Vector2(-22, -35); art.position = fixture_position; art.rotation = direction.angle()
+		overlay.add_child(art)
+		var glow_position := fixture_position + direction * 142.0
 		if roadlight_spots.has(fixture_position):
-			glow_position += fixture_position.direction_to(_nearest_route_point(fixture_position)) * 150.0
+			glow_position += direction * 105.0
 		var lamp := PointLight2D.new(); lamp.name = "StreetGlow%d" % index
 		lamp.position = glow_position
 		lamp.texture = texture; lamp.texture_scale = 3.15 if roadlight_spots.has(fixture_position) else 2.75

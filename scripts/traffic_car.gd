@@ -58,7 +58,7 @@ func _ready() -> void:
 
 func _create_collision() -> void:
 	var body_collision := CollisionShape2D.new(); body_collision.name = "VehicleCollision"
-	var body_shape := RectangleShape2D.new(); body_shape.size = Vector2(105, 282) if vehicle_kind == "bus" else Vector2(92, 178)
+	var body_shape := RectangleShape2D.new(); body_shape.size = Vector2(136, 370) if vehicle_kind == "bus" else Vector2(122, 226)
 	body_collision.shape = body_shape; add_child(body_collision)
 	var area := Area2D.new(); area.name = "ImpactArea"; area.monitoring = true; area.body_entered.connect(_on_body_entered)
 	var impact_collision := CollisionShape2D.new(); var impact_shape := RectangleShape2D.new()
@@ -122,7 +122,11 @@ func _physics_process(delta: float) -> void:
 	impact_jolt = move_toward(impact_jolt, 0.0, delta * 4.2)
 	heading = heading.lerp(desired, 1.0 - exp(-4.2 * delta)).normalized()
 	velocity = heading * current_speed
-	move_and_slide()
+	var collision := move_and_collide(velocity * delta)
+	if collision:
+		current_speed = 0.0
+		velocity = Vector2.ZERO
+		self.braking = true
 	rotation = heading.angle() + PI * 0.5
 	_update_suspension(delta, corner_angle)
 	queue_redraw()
@@ -131,7 +135,8 @@ func _traffic_speed_limit() -> float:
 	var nearest_gap := INF
 	var lead_speed := cruise_speed
 	var own_half_length := 188.0 if vehicle_kind == "bus" else 121.0
-	for candidate in get_tree().get_nodes_in_group("traffic"):
+	var candidates := get_tree().get_nodes_in_group("traffic") + get_tree().get_nodes_in_group("player_vehicle")
+	for candidate in candidates:
 		if candidate == self or not candidate.visible: continue
 		var to_other: Vector2 = candidate.global_position - global_position
 		var distance := to_other.length()
@@ -139,12 +144,13 @@ func _traffic_speed_limit() -> float:
 		if heading.dot(to_other.normalized()) < 0.70: continue
 		var lateral := absf(to_other.cross(heading))
 		if lateral > 76.0: continue
-		if candidate.heading.dot(heading) < 0.45: continue
-		var candidate_half_length := 188.0 if candidate.vehicle_kind == "bus" else 121.0
+		var candidate_heading: Vector2 = candidate.heading if candidate.is_in_group("traffic") else Vector2.UP.rotated(candidate.rotation)
+		if candidate_heading.dot(heading) < 0.45: continue
+		var candidate_half_length := (188.0 if candidate.vehicle_kind == "bus" else 121.0) if candidate.is_in_group("traffic") else 121.0
 		var gap := distance - own_half_length - candidate_half_length
 		if gap < nearest_gap:
 			nearest_gap = gap
-			lead_speed = candidate.current_speed
+			lead_speed = candidate.current_speed if candidate.is_in_group("traffic") else absf(candidate.speed)
 	if is_inf(nearest_gap): return cruise_speed
 	var desired_gap := 105.0 + current_speed * 0.34
 	if nearest_gap <= 42.0: return 0.0

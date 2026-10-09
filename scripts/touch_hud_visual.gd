@@ -78,16 +78,14 @@ func _draw_time_buttons() -> void:
 		draw_string(ThemeDB.fallback_font, center + Vector2(-8, 5), labels[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.94, 0.98, 0.98, 0.88))
 
 func _draw_driving_controls() -> void:
-	var left: Vector2 = controls.steer_left_center
-	var right: Vector2 = controls.steer_right_center
-	for data in [[left, -1.0, controls.steer_left_pressed], [right, 1.0, controls.steer_right_pressed]]:
+	for data in [[controls.brake_center, "BRAKE", controls.brake_pressed, Color("#d95b4f")], [controls.throttle_center, "GO", controls.throttle_pressed, Color("#46b878")]]:
 		var center: Vector2 = data[0]
-		var direction: float = data[1]
+		var label: String = data[1]
 		var pressed: bool = data[2]
-		draw_circle(center, 61.0, Color(0.08, 0.66, 0.74, 0.52) if pressed else Color(0.035, 0.045, 0.055, 0.48))
+		var accent: Color = data[3]
+		draw_circle(center, 61.0, accent.darkened(0.25) if pressed else Color(0.035, 0.045, 0.055, 0.58))
 		draw_circle(center, 59.0, Color(0.82, 0.97, 0.98, 0.25), false, 3.0)
-		var tip := center + Vector2(direction * 23.0, 0)
-		draw_colored_polygon(PackedVector2Array([tip, center + Vector2(direction * -15.0, -22), center + Vector2(direction * -15.0, 22)]), Color(0.92, 1.0, 1.0, 0.90))
+		draw_string(ThemeDB.fallback_font, center + Vector2(-24 if label == "BRAKE" else -12, 6), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)
 	# EXIT replaces the walking action stack while the car owns the camera.
 	var exit_center: Vector2 = controls.interact_center
 	draw_circle(exit_center, 48.0, Color(0.42, 0.15, 0.12, 0.68))

@@ -49,7 +49,9 @@ func _refresh_tiles() -> void:
 		if view.intersects(area):
 			if not sprites.has(key):
 				var sprite := Sprite2D.new()
-				sprite.texture = load("res://assets/roads/"+key)
+				var web := OS.has_feature("web")
+				sprite.texture = load("res://assets/roads/" + ("web/" if web else "") + key)
+				sprite.scale = Vector2(2, 2) if web else Vector2.ONE
 				sprite.centered = false
 				sprite.position = area.position
 				add_child(sprite)

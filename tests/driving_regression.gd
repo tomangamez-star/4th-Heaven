@@ -68,5 +68,5 @@ func run() -> void:
 		check(before.distance_to(car.position)<6.0,"Wall collision teleported the car")
 	check(car.position.x < -2160.0,"Car crossed the wall")
 	check(car.speed<=110.0,"Off-road speed cap failed")
-	print("v0.2.4 driving regressions passed; max frame displacement: ",max_step)
+	print("v0.2.5 driving regressions passed; max frame displacement: ",max_step)
 	quit(0)

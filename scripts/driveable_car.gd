@@ -26,7 +26,7 @@ func _ready() -> void:
 	safe_margin = 0.05
 	sprite = Sprite2D.new(); sprite.texture = CAR_TEXTURE; sprite.scale = Vector2(0.98, 1.05); add_child(sprite)
 	var collider := CollisionShape2D.new(); collider.name = "PlayerCarCollision"
-	var shape := CapsuleShape2D.new(); shape.radius = 52.0; shape.height = 218.0; collider.shape = shape; add_child(collider)
+	var shape := CapsuleShape2D.new(); shape.radius = 62.0; shape.height = 232.0; collider.shape = shape; add_child(collider)
 	vehicle_camera = Camera2D.new(); vehicle_camera.name = "VehicleCamera"
 	vehicle_camera.enabled = false
 	# A hard camera lock prevents the controlled car outrunning the phone view.
@@ -35,7 +35,7 @@ func _ready() -> void:
 	add_child(vehicle_camera)
 	# Independent world transform: steering cannot rotate the camera offset.
 	vehicle_camera.top_level = true
-	vehicle_camera.ignore_rotation = true
+	vehicle_camera.ignore_rotation = false
 	queue_redraw()
 
 func _physics_process(delta: float) -> void:
@@ -46,11 +46,11 @@ func _physics_process(delta: float) -> void:
 		if occupied: _exit_vehicle()
 		elif nearby: _enter_vehicle()
 	if not occupied: return
-	var input: Vector2 = controls.movement_vector
-	if input.length() < 0.04: input = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	var throttle: float = -input.y
+	var keyboard := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	var throttle: float = controls.get_drive_throttle()
+	if absf(throttle) < 0.01: throttle = -keyboard.y
 	var steer_input: float = controls.get_steering_axis()
-	if absf(steer_input) < 0.01: steer_input = input.x
+	if absf(steer_input) < 0.01: steer_input = keyboard.x
 	_drive(throttle, steer_input, delta)
 	player.global_position = global_position
 	_update_camera(delta)
@@ -108,6 +108,7 @@ func _update_camera(delta: float) -> void:
 	vehicle_camera.global_position = vehicle_camera.global_position.lerp(target,1.0-exp(-10.0*delta))
 	# Bound lag, not car position. This never moves the physics body.
 	vehicle_camera.global_position = global_position + (vehicle_camera.global_position-global_position).limit_length(48.0)
+	vehicle_camera.global_rotation = rotation
 	vehicle_camera.force_update_scroll()
 
 func _enter_vehicle() -> void:
@@ -129,6 +130,7 @@ func _enter_vehicle() -> void:
 	if is_instance_valid(player_camera): player_camera.enabled = false
 	vehicle_camera.enabled = true
 	vehicle_camera.global_position = global_position
+	vehicle_camera.global_rotation = rotation
 	vehicle_camera.make_current()
 	vehicle_camera.reset_smoothing()
 	vehicle_camera.force_update_scroll()

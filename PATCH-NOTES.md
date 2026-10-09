@@ -1,4 +1,18 @@
-# 4TH HEAVEN v0.2.4 — PNG Roads & Wheelbase Driving
+# 4TH HEAVEN v0.2.5 — Raster Environment & Driver View
+
+- Replaced procedural soil, streetlight bodies and traffic-signal bodies with polished top-down raster artwork.
+- Streetlights and signals now rotate toward their road, render above passing actors, and collide only at their physical base.
+- Left joystick now steers; dedicated Brake and Go pedals sit together on the right.
+- Driving camera rotates with the vehicle so the controlled car remains screen-forward.
+- Enlarged player and traffic collision bodies and added player-car awareness to traffic following.
+- Removed the test NPC that paced endlessly across one zebra crossing.
+- NPCs detect people and physical obstacles earlier and sidestep before contact.
+- Web preview uses half-resolution road/soil tiles, reduced redraw rate and tighter activity culling; APK quality remains full.
+- Added regression coverage for the new six-NPC population, avoidance and camera-safe driving.
+
+---
+
+## Previous: v0.2.4 — PNG Roads & Wheelbase Driving
 
 - Added generated HD asphalt and paving artwork, baked into 17 connected PNG map chunks.
 - Disabled the old vector oval, pavement and extension drawing layers while retaining their traffic/NPC route data.

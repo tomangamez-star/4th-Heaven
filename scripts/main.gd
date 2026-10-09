@@ -27,6 +27,8 @@ const NPC_STYLES := [
 const NPCS_PER_SEGMENT := 6
 
 func _ready() -> void:
+	if OS.has_feature("web"):
+		Engine.max_fps = 45
 	var terrain = TerrainScript.new()
 	terrain.name = "SoilTerrain"
 	add_child(terrain)
@@ -131,20 +133,6 @@ func _ready() -> void:
 	segment_npcs[3].start_behavior_at("sit", seats[0], Vector2(0, -1))
 	segment_npcs[4].start_behavior_at("talk", gatherings[0] + Vector2(-40, 0), Vector2.RIGHT)
 	segment_npcs[5].start_behavior_at("talk", gatherings[0] + Vector2(40, 0), Vector2.LEFT)
-
-	# The first outer-section pedestrian repeatedly uses the west zebra crossing,
-	# giving traffic a real moving person to detect and yield for.
-	var crossing_npc = PlayerScript.new()
-	crossing_npc.name = "CrosswalkNPC"
-	crossing_npc.is_npc = true
-	crossing_npc.clothing_color = Color("#58a59a")
-	crossing_npc.clothing_dark = Color("#173b3a")
-	crossing_npc.hair_color = Color("#4a2d23")
-	crossing_npc.hair_highlight = Color("#956449")
-	crossing_npc.add_to_group("doodles")
-	crossing_npc.add_to_group("npc")
-	add_child(crossing_npc)
-	crossing_npc.configure_route(PackedVector2Array([Vector2(2060, 115), Vector2(2060, 760)]), 0, 0.50)
 
 	# A small traffic pack: two same-direction cars and a bus share one lane,
 	# while the third car uses the opposite lane and route direction.

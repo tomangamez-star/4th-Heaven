@@ -278,17 +278,30 @@ func _update_route_npc(delta: float) -> void:
 	var avoidance := Vector2.ZERO
 	var blocked_ahead := false
 	var player_ahead_distance := INF
+	# Look ahead for poles, benches, shelters and vehicles before body contact.
+	# Pick a stable side early so NPCs flow around props instead of walking into
+	# them, stopping, and then sliding along the collider.
+	var ray := PhysicsRayQueryParameters2D.create(global_position, global_position + desired * 132.0)
+	ray.exclude = [get_rid()]
+	var obstacle := get_world_2d().direct_space_state.intersect_ray(ray)
+	if not obstacle.is_empty():
+		blocked_ahead = true
+		if sidestep_time <= 0.0:
+			sidestep_time = 0.95
+			var obstacle_position: Vector2 = obstacle.position
+			var right := Vector2(-desired.y, desired.x)
+			sidestep_direction = -1.0 if right.dot(obstacle_position - global_position) > 0.0 else 1.0
 	for candidate in get_tree().get_nodes_in_group("doodles"):
 		if candidate == self or not candidate.visible:
 			continue
 		var separation: Vector2 = global_position - candidate.global_position
 		var separation_length: float = separation.length()
-		var awareness := 112.0 if not candidate.is_npc else 92.0
+		var awareness := 154.0 if not candidate.is_npc else 126.0
 		if separation_length > 0.01 and separation_length < awareness:
 			var separation_direction := separation.normalized()
 			var strength := 1.0 - separation_length / awareness
-			avoidance += separation_direction * strength * (1.65 if not candidate.is_npc else 1.0)
-			if desired.dot(-separation_direction) > 0.55 and separation_length < 86.0:
+			avoidance += separation_direction * strength * (1.85 if not candidate.is_npc else 1.25)
+			if desired.dot(-separation_direction) > 0.45 and separation_length < 112.0:
 				blocked_ahead = true
 				if not candidate.is_npc:
 					player_ahead_distance = minf(player_ahead_distance, separation_length)
@@ -298,12 +311,12 @@ func _update_route_npc(delta: float) -> void:
 		sidestep_direction = -1.0 if get_instance_id() % 2 == 0 else 1.0
 	# At body-contact distance pedestrians wait instead of bulldozing the player.
 	# Farther away they use the same soft side-step used for another pedestrian.
-	if player_ahead_distance < 72.0:
+	if player_ahead_distance < 50.0:
 		_apply_controlled_motion(Vector2.ZERO, false, delta)
 		_queue_npc_redraw()
 		return
 	var side := Vector2(-desired.y, desired.x) * sidestep_direction
-	var sidestep := side * 0.72 if sidestep_time > 0.0 else Vector2.ZERO
+	var sidestep := side * 0.92 if sidestep_time > 0.0 else Vector2.ZERO
 	desired = (desired + avoidance * 1.15 + sidestep).normalized()
 	_apply_controlled_motion(desired * route_speed_scale, false, delta)
 	_apply_crate_pushes()
@@ -314,7 +327,7 @@ func _queue_npc_redraw() -> void:
 	# reads as smooth while physics and routing continue at the full tick rate.
 	if npc_redraw_time > 0.0:
 		return
-	npc_redraw_time = 1.0 / 30.0
+	npc_redraw_time = 1.0 / (20.0 if OS.has_feature("web") else 30.0)
 	visual.queue_redraw()
 
 func set_world_activity(active: bool) -> void:
