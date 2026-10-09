@@ -1,4 +1,4 @@
-# 4TH HEAVEN v0.2.2 — District & Vehicle-Control Recovery
+# 4TH HEAVEN v0.2.3 — Seamless Roads & Controlled Driving
 
 Procedural pedestrian-world prototype for **4TH HEAVEN**.
 
@@ -53,6 +53,8 @@ Procedural pedestrian-world prototype for **4TH HEAVEN**.
 - Compact asphalt parking court with consistent world styling
 - Full-world boundaries and corrected camera travel limits
 - Dedicated visible vehicle camera and mode-specific mobile driving HUD
+- Seamless intersection and parking joins with continuous lane markings
+- Slower progressive acceleration, safer steering and hard-locked car camera
 - Shared late-afternoon sunlight direction for characters, cars and street props
 - Reusable behaviour destinations that return NPCs to their sidewalk routes
 - Clean central loop with temporary laboratory props removed

@@ -250,6 +250,10 @@ func _init() -> void:
 		push_error("Player could not enter the parked test car")
 		quit(1)
 		return
+	if player_car.vehicle_camera.position_smoothing_enabled or player_car.FORWARD_SPEED > 270.0 or controls.movement_vector != Vector2.ZERO:
+		push_error("Vehicle camera lock, safe speed or clean driving input was not applied")
+		quit(1)
+		return
 	player_car._exit_vehicle()
 	if player_car.occupied or not player.visible or controls.driving_mode or not player.get_node("PlayerCamera").enabled:
 		push_error("Player could not exit the parked test car")
@@ -290,5 +294,5 @@ func _init() -> void:
 		push_error("Pedestrian did not stop before pushing into the player")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.2.2 district and vehicle-control recovery smoke test passed")
+	print("4TH HEAVEN v0.2.3 seamless-junction and driving-control smoke test passed")
 	quit(0)

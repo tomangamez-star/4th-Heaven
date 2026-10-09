@@ -158,11 +158,18 @@ func set_interact_visible(visible: bool) -> void:
 
 func set_driving_mode(enabled: bool) -> void:
 	driving_mode = enabled
+	# Never carry a walking touch into the car. A stale joystick vector was
+	# enough to launch the vehicle before the player had touched Drive.
+	movement_vector = Vector2.ZERO
+	joystick_touch = -1
+	joystick_knob = joystick_center
 	run_pressed = false
 	push_visible = false
 	ragdoll_requested = false
 	steer_left_pressed = false
 	steer_right_pressed = false
+	steer_left_touch = -1
+	steer_right_touch = -1
 	if is_instance_valid(hud): hud.queue_redraw()
 
 func get_steering_axis() -> float:

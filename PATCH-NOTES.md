@@ -1,4 +1,22 @@
-# 4TH HEAVEN v0.2.2 — District & Vehicle-Control Recovery
+# 4TH HEAVEN v0.2.3 — Seamless Roads & Controlled Driving
+
+## Corrected
+
+- Removed internal curb and asphalt outlines wherever the oval, junction and parking road connect.
+- Unified the lane paint across the connected roads while leaving clean gaps through junction boxes and crosswalks.
+- Rebuilt the parking entrance as a square seamless driveway instead of a rounded road cap/platform overlap.
+- Reduced player-car speed and acceleration, softened high-speed steering and added stronger coast braking.
+- Hard-locked the vehicle camera to the driven car and constrained the car to the playable world bounds.
+- Cleared stale joystick and steering touches on enter/exit so the car can no longer launch unexpectedly.
+
+## Preserved
+
+- Existing district layout, traffic signalling, smart following and pedestrian yielding.
+- Accepted central oval, lighting, vehicle scale, impact effects and character systems.
+
+---
+
+## Previous: v0.2.2 — District & Vehicle-Control Recovery
 
 ## Rebuilt
 
