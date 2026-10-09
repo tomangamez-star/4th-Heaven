@@ -41,7 +41,6 @@ func _draw() -> void:
 	draw_rect(Rect2(-78, 170, 156, 520), Color("#d0c1a7"), true)
 	for y in range(190, 681, 52): draw_line(Vector2(-76, y), Vector2(76, y), Color(0.30, 0.24, 0.18, 0.18), 2.0)
 	draw_circle(building_center, 275.0, Color("#c9b99e")); draw_circle(building_center, 250.0, Color("#d8c8ac"))
-	_draw_building_base()
 	for position in tree_positions: _draw_tree_base(position)
 	for position in bush_positions: _draw_bush(position)
 
@@ -50,23 +49,6 @@ func _rounded_box(color: Color, radius: float) -> StyleBoxFlat:
 	box.corner_radius_top_left = int(radius); box.corner_radius_top_right = int(radius)
 	box.corner_radius_bottom_left = int(radius); box.corner_radius_bottom_right = int(radius)
 	return box
-
-func _draw_building_base() -> void:
-	var shadow: Vector2 = light_manager.get_shadow_offset(22.0) if is_instance_valid(light_manager) else Vector2(18, 24)
-	draw_rect(Rect2(building_center + shadow - Vector2(255, 126), Vector2(510, 252)), Color(0.08, 0.05, 0.03, 0.28), true)
-	# Only the foundation lip, entrance stair and closed gate remain visible;
-	# the roof overlay now owns almost the entire eagle-eye silhouette.
-	draw_rect(Rect2(building_center - Vector2(246, 116), Vector2(492, 232)), Color("#4a4039"), true)
-	draw_rect(Rect2(building_center - Vector2(233, 104), Vector2(466, 208)), Color("#cdbd9f"), true)
-	for step in 4:
-		draw_rect(Rect2(building_center + Vector2(-112 + step * 9, -164 + step * 12), Vector2(224 - step * 18, 12)), Color("#d9cbb1").darkened(float(step) * 0.035), true)
-	draw_rect(Rect2(building_center + Vector2(-84, -116), Vector2(168, 52)), Color("#17252b"), true)
-	for x in range(-72, 73, 18): draw_line(building_center + Vector2(x, -113), building_center + Vector2(x, -68), Color("#829397"), 4.0)
-	draw_rect(Rect2(building_center + Vector2(-98, -62), Vector2(196, 19)), Color("#a44a39"), true)
-	for x in range(-86, 87, 28): draw_line(building_center + Vector2(x, -59), building_center + Vector2(x + 15, -46), Color("#f0cf67"), 4.0)
-	if is_instance_valid(light_manager) and light_manager.is_night():
-		draw_circle(building_center + Vector2(-188, 98), 12.0, Color(1.0, 0.78, 0.36, 0.50))
-		draw_circle(building_center + Vector2(188, 98), 12.0, Color(1.0, 0.78, 0.36, 0.50))
 
 func _draw_tree_base(position: Vector2) -> void:
 	var shadow: Vector2 = light_manager.get_shadow_offset(25.0) if is_instance_valid(light_manager) else Vector2(16, 22)
@@ -79,7 +61,10 @@ func _draw_bush(position: Vector2) -> void:
 
 func _create_collisions() -> void:
 	var holder := Node2D.new(); holder.name = "PlazaCollisions"; add_child(holder)
-	_add_box(holder, building_center, Vector2(490, 248), "StationPavilion")
+	# Two fitted bodies follow the roof and entrance instead of one oversized
+	# blocker, leaving the visible forecourt corners walkable.
+	_add_box(holder, building_center + Vector2(0, -18), Vector2(505, 190), "StationMain")
+	_add_box(holder, building_center + Vector2(0, 100), Vector2(205, 76), "StationEntrance")
 	for position in tree_positions: _add_circle(holder, position, 30.0, "Tree")
 	for position in bush_positions: _add_circle(holder, position, 25.0, "Bush")
 

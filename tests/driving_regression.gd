@@ -30,6 +30,15 @@ func run() -> void:
 	check(collider.disabled,"Unnamed player collider remained active inside car")
 	check(controls.movement_vector==Vector2.ZERO,"Entry inherited throttle")
 	check(car.get_collision_exceptions().has(player),"Missing driver collision exception")
+	for frame in 40: car._update_camera_transition(1.0/60.0)
+	car.vehicle_camera.global_rotation = 0.0; car.camera_target_rotation = 0.0
+	car.rotation = deg_to_rad(20.0); car.speed = 100.0
+	for frame in 25: car._update_camera(1.0/60.0)
+	check(absf(car.camera_target_rotation) < 0.01,"Camera reacted inside the steering dead zone")
+	car.rotation = deg_to_rad(90.0)
+	for frame in 20: car._update_camera(1.0/60.0)
+	check(absf(car.camera_target_rotation) > 1.0,"Camera ignored a sustained major turn")
+	car.rotation = PI/2.0; car.speed = 0.0; car.travel_velocity = Vector2.ZERO
 	var start_angle: float=car.rotation
 	for frame in 30: car._drive(0.0,1.0,1.0/60.0)
 	check(is_equal_approx(car.rotation,start_angle),"Stopped car pivots in place")
@@ -52,6 +61,8 @@ func run() -> void:
 	check(car.speed<0.0 and absf(car.speed)<=car.REVERSE_SPEED,"Reverse failed after braking")
 	car.speed=0.0; car.travel_velocity=Vector2.ZERO
 	car._exit_vehicle()
+	check(car.vehicle_camera.enabled and not camera.enabled and not player.is_physics_processing(),"Exit camera snapped instead of starting a blend")
+	for frame in 40: car._update_camera_transition(1.0/60.0)
 	await physics_frame
 	check(not car.occupied and not collider.disabled,"Exit did not restore player")
 	# An isolated swept-body collision must stop without crossing a wall.
@@ -68,5 +79,5 @@ func run() -> void:
 		check(before.distance_to(car.position)<6.0,"Wall collision teleported the car")
 	check(car.position.x < -2160.0,"Car crossed the wall")
 	check(car.speed<=110.0,"Off-road speed cap failed")
-	print("v0.2.5 driving regressions passed; max frame displacement: ",max_step)
+	print("v0.2.6 driving regressions passed; max frame displacement: ",max_step)
 	quit(0)

@@ -43,14 +43,14 @@ func _rebuild_layout() -> void:
 	_add_spot(bench_spots, 5, FURNITURE_OFFSET)
 	_add_spot(bench_spots, 11, FURNITURE_OFFSET)
 	_add_spot(bus_stop_spots, 4, FURNITURE_OFFSET + 18.0)
-	_add_spot(streetlight_spots, 1, 382.0)
+	_add_spot(streetlight_spots, 0, 382.0)
 	_add_spot(streetlight_spots, 3, 382.0)
 	_add_spot(streetlight_spots, 6, 382.0)
 	_add_spot(streetlight_spots, 9, 382.0)
 	_add_spot(streetlight_spots, 12, 382.0)
 	# Opposite-side fixtures fill the long dark asphalt gaps. Their actual glow
 	# is projected inward toward the road centre rather than onto the park.
-	_add_spot(roadlight_spots, 0, -382.0)
+	_add_spot(roadlight_spots, 1, -382.0)
 	_add_spot(roadlight_spots, 4, -382.0)
 	_add_spot(roadlight_spots, 7, -382.0)
 	_add_spot(roadlight_spots, 10, -382.0)

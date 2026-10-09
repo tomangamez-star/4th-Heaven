@@ -7,6 +7,7 @@ const CAR_TEXTURES := [
 ]
 const BUS_TEXTURE = preload("res://assets/vehicles/city_bus.png")
 const ImpactEffectScript = preload("res://scripts/vehicle_impact_effect.gd")
+const WheelOverlayScript = preload("res://scripts/vehicle_wheel_overlay.gd")
 
 var route := PackedVector2Array()
 var route_index := 0
@@ -27,6 +28,7 @@ var impact_jolt := 0.0
 var headlight: PointLight2D
 var tail_light: PointLight2D
 var braking := false
+var wheel_overlay
 
 func setup(kind: String, variant: int = 0) -> void:
 	vehicle_kind = kind
@@ -43,6 +45,7 @@ func _ready() -> void:
 	var lights := get_tree().get_nodes_in_group("world_light")
 	if not lights.is_empty(): light_manager = lights[0]
 	visual_root = Node2D.new(); visual_root.name = "VehicleSuspension"; add_child(visual_root)
+	wheel_overlay = WheelOverlayScript.new(); wheel_overlay.name = "SteeringWheels"; wheel_overlay.is_bus = vehicle_kind == "bus"; visual_root.add_child(wheel_overlay)
 	sprite = Sprite2D.new(); sprite.name = "VehicleSprite"
 	sprite.texture = BUS_TEXTURE if vehicle_kind == "bus" else CAR_TEXTURES[color_variant]
 	# The PNGs stay readable beside the doodles: cars are roughly two doodle
@@ -66,15 +69,9 @@ func _create_collision() -> void:
 	area.add_child(impact_collision); add_child(area)
 
 func _create_vehicle_lights() -> void:
-	var texture := _radial_light_texture()
-	headlight = PointLight2D.new(); headlight.name = "HeadlightGlow"; headlight.texture = texture
-	headlight.position = Vector2(0, -188 if vehicle_kind == "bus" else -121)
-	headlight.color = Color("#ffe2a0"); headlight.energy = 1.72; headlight.texture_scale = 1.95 if vehicle_kind == "bus" else 1.65
-	visual_root.add_child(headlight)
-	tail_light = PointLight2D.new(); tail_light.name = "TailLightGlow"; tail_light.texture = texture
-	tail_light.position = Vector2(0, 188 if vehicle_kind == "bus" else 121)
-	tail_light.color = Color("#ff3e32"); tail_light.energy = 0.55; tail_light.texture_scale = 0.52
-	visual_root.add_child(tail_light)
+	# Beams and lamp strips are drawn from the actual bumper positions. The old
+	# radial PointLights read as detached yellow/red circles beside the PNGs.
+	pass
 
 func _radial_light_texture() -> GradientTexture2D:
 	var gradient := Gradient.new()
@@ -84,10 +81,7 @@ func _radial_light_texture() -> GradientTexture2D:
 	texture.fill_from = Vector2(0.5, 0.5); texture.fill_to = Vector2(1.0, 0.5)
 	return texture
 
-func _on_time_state_changed(state_name: String) -> void:
-	var enabled := state_name == "night"
-	if is_instance_valid(headlight): headlight.enabled = enabled
-	if is_instance_valid(tail_light): tail_light.enabled = enabled
+func _on_time_state_changed(_state_name: String) -> void:
 	queue_redraw()
 
 func configure(points: PackedVector2Array, start_index: int = 0) -> void:
@@ -107,6 +101,8 @@ func _physics_process(delta: float) -> void:
 		route_index = (route_index + 1) % route.size(); target = route[route_index]
 	var desired := global_position.direction_to(target)
 	var corner_angle := absf(heading.angle_to(desired))
+	wheel_overlay.steer_angle = clampf(heading.angle_to(desired), -0.58, 0.58)
+	wheel_overlay.queue_redraw()
 	var corner_speed := 125.0 if vehicle_kind == "bus" else 145.0
 	var target_speed := lerpf(cruise_speed, corner_speed, clampf(corner_angle / 1.10, 0.0, 1.0))
 	target_speed = minf(target_speed, _traffic_speed_limit())
@@ -118,14 +114,15 @@ func _physics_process(delta: float) -> void:
 	var braking := 330.0 if vehicle_kind == "bus" else 440.0
 	current_speed = move_toward(current_speed, target_speed, (acceleration if target_speed > current_speed else braking) * delta)
 	self.braking = target_speed < previous_speed - 8.0 or (target_speed <= 1.0 and previous_speed > 1.0)
-	if is_instance_valid(tail_light): tail_light.energy = 1.35 if self.braking else 0.55
 	impact_jolt = move_toward(impact_jolt, 0.0, delta * 4.2)
 	heading = heading.lerp(desired, 1.0 - exp(-4.2 * delta)).normalized()
 	velocity = heading * current_speed
 	var collision := move_and_collide(velocity * delta)
 	if collision:
-		current_speed = 0.0
-		velocity = Vector2.ZERO
+		var normal := collision.get_normal()
+		var impact := absf(velocity.dot(normal))
+		velocity = velocity.slide(normal) * (0.58 if impact < current_speed * 0.70 else 0.12)
+		current_speed = maxf(0.0, velocity.dot(heading))
 		self.braking = true
 	rotation = heading.angle() + PI * 0.5
 	_update_suspension(delta, corner_angle)
@@ -210,17 +207,14 @@ func _draw() -> void:
 		var far_width := 190.0 if vehicle_kind == "bus" else 158.0
 		var reach := 265.0 if vehicle_kind == "bus" else 235.0
 		draw_colored_polygon(PackedVector2Array([Vector2(-width, front_y), Vector2(width, front_y), Vector2(far_width, front_y - reach), Vector2(-far_width, front_y - reach)]), Color(1.0, 0.88, 0.56, 0.29))
-		draw_circle(Vector2(-width, front_y), 8.0, Color(1.0, 0.92, 0.68, 0.95))
-		draw_circle(Vector2(width, front_y), 8.0, Color(1.0, 0.92, 0.68, 0.95))
-		var rear_y := -front_y
-		draw_circle(Vector2(-width, rear_y), 7.0, Color(1.0, 0.12, 0.08, 0.90))
-		draw_circle(Vector2(width, rear_y), 7.0, Color(1.0, 0.12, 0.08, 0.90))
+		draw_rect(Rect2(-width-8.0,front_y-3.0,18.0,6.0),Color(1.0,0.94,0.72,0.95),true)
+		draw_rect(Rect2(width-10.0,front_y-3.0,18.0,6.0),Color(1.0,0.94,0.72,0.95),true)
 	# Brake lamps remain readable by day and flare strongly when traffic slows.
 	var lamp_y := 188.0 if vehicle_kind == "bus" else 121.0
 	var lamp_x := 48.0 if vehicle_kind == "bus" else 41.0
 	var brake_color := Color(1.0, 0.08, 0.045, 1.0) if braking else Color(0.62, 0.055, 0.035, 0.82)
-	draw_circle(Vector2(-lamp_x, lamp_y), 10.0 if braking else 6.0, brake_color)
-	draw_circle(Vector2(lamp_x, lamp_y), 10.0 if braking else 6.0, brake_color)
+	draw_rect(Rect2(-lamp_x-9.0,lamp_y-3.0,18.0,6.0 if not braking else 9.0),brake_color,true)
+	draw_rect(Rect2(lamp_x-9.0,lamp_y-3.0,18.0,6.0 if not braking else 9.0),brake_color,true)
 
 func _shadow_box() -> StyleBoxFlat:
 	var box := StyleBoxFlat.new(); box.bg_color = Color(0.05, 0.045, 0.04, 0.30)

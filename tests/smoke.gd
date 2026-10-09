@@ -141,7 +141,7 @@ func _init() -> void:
 		return
 	var plaza_collisions := plaza.get_node_or_null("PlazaCollisions")
 	var pavilion_roof := plaza.get_node_or_null("PavilionRoofAndCanopies")
-	if plaza_collisions == null or plaza_collisions.get_child_count() != 11 or pavilion_roof == null or pavilion_roof.z_index <= player.z_index:
+	if plaza_collisions == null or plaza_collisions.get_child_count() != 12 or pavilion_roof == null or pavilion_roof.get_node_or_null("RasterCentralStationRoof") == null or pavilion_roof.z_index <= player.z_index:
 		push_error("Central plaza layering or collisions were not created")
 		quit(1)
 		return
@@ -220,8 +220,8 @@ func _init() -> void:
 		push_error("Physical traffic collisions were not created")
 		quit(1)
 		return
-	if car.get_node_or_null("VehicleSuspension/HeadlightGlow") == null or bus.get_node_or_null("VehicleSuspension/TailLightGlow") == null:
-		push_error("Real night vehicle lights were not created")
+	if car.get_node_or_null("VehicleSuspension/SteeringWheels") == null or bus.get_node_or_null("VehicleSuspension/SteeringWheels") == null:
+		push_error("Articulated vehicle wheel visuals were not created")
 		quit(1)
 		return
 	if get_nodes_in_group("night_street_light").size() != furniture.streetlight_spots.size() + furniture.roadlight_spots.size():
@@ -255,6 +255,8 @@ func _init() -> void:
 		quit(1)
 		return
 	player_car._exit_vehicle()
+	for frame in 40:
+		player_car._update_camera_transition(1.0 / 60.0)
 	if player_car.occupied or not player.visible or controls.driving_mode or not player.get_node("PlayerCamera").enabled:
 		push_error("Player could not exit the parked test car")
 		quit(1)
@@ -300,5 +302,5 @@ func _init() -> void:
 		push_error("PNG road layer missing or old vector roads still visible")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.2.5 raster environment and driving smoke test passed")
+	print("4TH HEAVEN v0.2.6 cinematic driving and PNG station smoke test passed")
 	quit(0)

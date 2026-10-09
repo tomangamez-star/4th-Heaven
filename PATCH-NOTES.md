@@ -1,4 +1,18 @@
-# 4TH HEAVEN v0.2.5 — Raster Environment & Driver View
+# 4TH HEAVEN v0.2.6 — Cinematic Driving & PNG Station
+
+- Added delayed cinematic camera rotation with a 27-degree dead zone, held-turn detection and bounded angular speed.
+- Added smooth 0.62-second camera blends when entering and exiting sideways vehicles.
+- Reworked player steering around front and rear axle motion and added visibly articulated front wheels.
+- Side contacts now discard only the blocked velocity component, allowing cars to slide apart instead of friction-locking.
+- Replaced floating circular vehicle lamps with bumper-mounted light strips and beams originating at the car body.
+- Staggered streetlights across opposite sides of the road for balanced two-lane illumination.
+- Repositioned traffic signals squarely per incoming lane and baked distinct red/green raster states.
+- Replaced the old vector central pavilion with a detailed transparent PNG transit station inspired by the original 4TH HEAVEN concept art.
+- Split the station into below-character entrance art and an above-character roof layer, with fitted wall/entrance collisions.
+
+---
+
+## Previous: v0.2.5 — Raster Environment & Driver View
 
 - Replaced procedural soil, streetlight bodies and traffic-signal bodies with polished top-down raster artwork.
 - Streetlights and signals now rotate toward their road, render above passing actors, and collide only at their physical base.

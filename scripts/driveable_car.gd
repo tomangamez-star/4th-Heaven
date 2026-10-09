@@ -1,17 +1,27 @@
 extends CharacterBody2D
 
 const CAR_TEXTURE = preload("res://assets/vehicles/car_blue.png")
+const WheelOverlayScript = preload("res://scripts/vehicle_wheel_overlay.gd")
 var player
 var controls
 var occupied := false
 var speed := 0.0
 var steering := 0.0
 var sprite: Sprite2D
+var wheel_overlay
 var vehicle_camera: Camera2D
 var road_surface
 var braking := false
 var reverse_wait := 0.0
 var travel_velocity := Vector2.ZERO
+var light_manager
+var camera_target_rotation := 0.0
+var camera_turn_hold := 0.0
+var camera_transition := ""
+var camera_transition_time := 0.0
+var camera_transition_start_position := Vector2.ZERO
+var camera_transition_start_rotation := 0.0
+var camera_transition_start_zoom := Vector2.ONE
 const WHEELBASE := 155.0
 const FORWARD_SPEED := 265.0
 const REVERSE_SPEED := 125.0
@@ -22,8 +32,11 @@ func _ready() -> void:
 	name = "PlayerCar"
 	z_index = 7
 	add_to_group("player_vehicle")
+	var lights := get_tree().get_nodes_in_group("world_light")
+	if not lights.is_empty(): light_manager = lights[0]
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	safe_margin = 0.05
+	wheel_overlay = WheelOverlayScript.new(); wheel_overlay.name = "SteeringWheels"; add_child(wheel_overlay)
 	sprite = Sprite2D.new(); sprite.texture = CAR_TEXTURE; sprite.scale = Vector2(0.98, 1.05); add_child(sprite)
 	var collider := CollisionShape2D.new(); collider.name = "PlayerCarCollision"
 	var shape := CapsuleShape2D.new(); shape.radius = 62.0; shape.height = 232.0; collider.shape = shape; add_child(collider)
@@ -40,6 +53,9 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player) or not is_instance_valid(controls): return
+	if camera_transition != "":
+		_update_camera_transition(delta)
+		return
 	var nearby := global_position.distance_to(player.global_position) < 135.0
 	controls.set_interact_visible(nearby or occupied)
 	if controls.consume_interact_request() or Input.is_action_just_pressed("interact"):
@@ -76,11 +92,20 @@ func _drive(throttle: float, steer_input: float, delta: float) -> void:
 		speed = move_toward(speed,target,(ACCELERATION if on_road else 95.0)*delta)
 	if absf(speed)>limit: speed=move_toward(speed,signf(speed)*limit,250.0*delta)
 	var steering_angle := steering * lerpf(0.66,0.43,clampf(absf(speed)/FORWARD_SPEED,0.0,1.0))
-	# Bicycle-model yaw is proportional to distance travelled, not a fixed
-	# rotation command. Stationary cars cannot pivot; reverse turns naturally.
-	var next_rotation := rotation + speed / WHEELBASE * tan(steering_angle) * delta
-	if _can_rotate(next_rotation): rotation = next_rotation
+	wheel_overlay.steer_angle = steering_angle * 0.82
+	wheel_overlay.queue_redraw()
+	# Kinematic axle model: the rear axle follows the body while the front axle
+	# moves in its steered direction. The nose now pulls the car through an arc
+	# instead of rotating the whole sprite around its centre.
 	var forward := Vector2.UP.rotated(rotation)
+	var rear_axle := global_position - forward * WHEELBASE * 0.5
+	var front_axle := global_position + forward * WHEELBASE * 0.5
+	rear_axle += forward * speed * delta
+	front_axle += Vector2.UP.rotated(rotation + steering_angle) * speed * delta
+	var axle_heading := rear_axle.direction_to(front_axle)
+	var next_rotation := axle_heading.angle() + PI * 0.5
+	if _can_rotate(next_rotation): rotation = next_rotation
+	forward = Vector2.UP.rotated(rotation)
 	var lateral := travel_velocity - forward * travel_velocity.dot(forward)
 	travel_velocity = forward * speed + lateral * exp(-(10.0 if on_road else 4.0)*delta)
 	var motion := travel_velocity * delta
@@ -88,8 +113,10 @@ func _drive(throttle: float, steer_input: float, delta: float) -> void:
 	# drive instead of repeatedly accelerating into an overlapping obstacle.
 	var collision := move_and_collide(motion, false, safe_margin, true)
 	if collision:
-		travel_velocity = Vector2.ZERO
-		speed = 0.0
+		var normal := collision.get_normal()
+		var impact := absf(travel_velocity.dot(normal))
+		travel_velocity = travel_velocity.slide(normal) * (0.62 if impact < absf(speed) * 0.72 else 0.18)
+		speed = travel_velocity.dot(forward)
 		braking = true
 	velocity = travel_velocity
 
@@ -108,7 +135,17 @@ func _update_camera(delta: float) -> void:
 	vehicle_camera.global_position = vehicle_camera.global_position.lerp(target,1.0-exp(-10.0*delta))
 	# Bound lag, not car position. This never moves the physics body.
 	vehicle_camera.global_position = global_position + (vehicle_camera.global_position-global_position).limit_length(48.0)
-	vehicle_camera.global_rotation = rotation
+	var desired_rotation := rotation
+	var angle_error := absf(wrapf(desired_rotation - camera_target_rotation, -PI, PI))
+	if absf(speed) > 55.0 and angle_error > deg_to_rad(27.0):
+		camera_turn_hold += delta
+		if camera_turn_hold > 0.20 or angle_error > deg_to_rad(72.0):
+			camera_target_rotation = desired_rotation
+	else:
+		camera_turn_hold = maxf(0.0, camera_turn_hold - delta * 2.0)
+	var camera_error := wrapf(camera_target_rotation - vehicle_camera.global_rotation, -PI, PI)
+	var max_step := deg_to_rad(82.0) * delta
+	vehicle_camera.global_rotation += clampf(camera_error * (1.0 - exp(-2.8 * delta)), -max_step, max_step)
 	vehicle_camera.force_update_scroll()
 
 func _enter_vehicle() -> void:
@@ -129,11 +166,14 @@ func _enter_vehicle() -> void:
 	var player_camera := player.get_node_or_null("PlayerCamera") as Camera2D
 	if is_instance_valid(player_camera): player_camera.enabled = false
 	vehicle_camera.enabled = true
-	vehicle_camera.global_position = global_position
-	vehicle_camera.global_rotation = rotation
+	vehicle_camera.global_position = player.global_position
+	vehicle_camera.global_rotation = 0.0
+	camera_target_rotation = rotation
+	vehicle_camera.zoom = player_camera.zoom if is_instance_valid(player_camera) else Vector2(1.08, 1.08)
 	vehicle_camera.make_current()
 	vehicle_camera.reset_smoothing()
 	vehicle_camera.force_update_scroll()
+	_begin_camera_transition("enter")
 
 func _exit_vehicle() -> void:
 	if absf(speed) > 40.0: return
@@ -148,18 +188,48 @@ func _exit_vehicle() -> void:
 	player.global_position = exit_position
 	player.velocity = Vector2.ZERO
 	player.visible = true
-	player.set_physics_process(true)
+	player.set_physics_process(false)
 	for collider in player.get_children():
 		if collider is CollisionShape2D: collider.set_deferred("disabled", false)
 	remove_collision_exception_with(player)
 	player.remove_collision_exception_with(self)
-	vehicle_camera.enabled = false
 	var player_camera := player.get_node_or_null("PlayerCamera") as Camera2D
-	if is_instance_valid(player_camera):
-		player_camera.enabled = true
-		player_camera.make_current()
-		player_camera.reset_smoothing()
+	if is_instance_valid(player_camera): player_camera.enabled = false
+	_begin_camera_transition("exit")
 	controls.set_interact_visible(false)
+
+func _begin_camera_transition(kind: String) -> void:
+	camera_transition = kind
+	camera_transition_time = 0.0
+	camera_transition_start_position = vehicle_camera.global_position
+	camera_transition_start_rotation = vehicle_camera.global_rotation
+	camera_transition_start_zoom = vehicle_camera.zoom
+
+func _update_camera_transition(delta: float) -> void:
+	if camera_transition == "": return
+	camera_transition_time += delta
+	var amount := clampf(camera_transition_time / 0.62, 0.0, 1.0)
+	var eased := amount * amount * (3.0 - 2.0 * amount)
+	var target_position: Vector2 = global_position if camera_transition == "enter" else player.global_position
+	var target_rotation: float = rotation if camera_transition == "enter" else 0.0
+	var player_camera := player.get_node_or_null("PlayerCamera") as Camera2D
+	var target_zoom: Vector2 = Vector2(1.08, 1.08) if camera_transition == "enter" else (player_camera.zoom if is_instance_valid(player_camera) else Vector2(1.08, 1.08))
+	vehicle_camera.global_position = camera_transition_start_position.lerp(target_position, eased)
+	vehicle_camera.global_rotation = lerp_angle(camera_transition_start_rotation, target_rotation, eased)
+	vehicle_camera.zoom = camera_transition_start_zoom.lerp(target_zoom, eased)
+	vehicle_camera.force_update_scroll()
+	if amount < 1.0: return
+	var completed := camera_transition
+	camera_transition = ""
+	if completed == "enter":
+		camera_target_rotation = vehicle_camera.global_rotation
+	else:
+		vehicle_camera.enabled = false
+		player.set_physics_process(true)
+		if is_instance_valid(player_camera):
+			player_camera.enabled = true
+			player_camera.make_current()
+			player_camera.reset_smoothing()
 
 func _find_exit() -> Vector2:
 	var shape := CircleShape2D.new(); shape.radius=35.0
@@ -173,6 +243,13 @@ func _find_exit() -> Vector2:
 
 func _draw() -> void:
 	draw_style_box(_shadow_box(), Rect2(-64, -121, 128, 242))
+	if is_instance_valid(light_manager) and light_manager.is_night():
+		draw_colored_polygon(PackedVector2Array([Vector2(-42,-116),Vector2(42,-116),Vector2(150,-345),Vector2(-150,-345)]),Color(1.0,0.88,0.58,0.25))
+		draw_rect(Rect2(-47,-121,18,6),Color(1.0,0.94,0.72,0.92),true)
+		draw_rect(Rect2(29,-121,18,6),Color(1.0,0.94,0.72,0.92),true)
+	var brake_color := Color(1.0,0.08,0.04,0.96) if braking else Color(0.50,0.035,0.025,0.72)
+	draw_rect(Rect2(-48,115,18,6),brake_color,true)
+	draw_rect(Rect2(30,115,18,6),brake_color,true)
 	if occupied:
 		draw_circle(Vector2.ZERO, 68.0, Color(0.15, 0.75, 0.82, 0.18), false, 4.0)
 
