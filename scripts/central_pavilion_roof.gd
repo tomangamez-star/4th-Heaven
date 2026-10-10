@@ -21,7 +21,7 @@ func _ready() -> void:
 	cropped.atlas = STATION_TEXTURE
 	cropped.region = STATION_TEXTURE.get_image().get_used_rect()
 	station_roof.texture = cropped
-	station_roof.scale = Vector2(560.0 / cropped.get_width(), 312.0 / cropped.get_height())
+	station_roof.scale = Vector2(700.0 / cropped.get_width(), 390.0 / cropped.get_height())
 	station_roof.position = building_center + Vector2(0, 8)
 	station_roof.z_as_relative = false; station_roof.z_index = 12
 	station_shadow.texture = cropped

@@ -1,5 +1,6 @@
 extends Node2D
 const Atlas = preload("res://scripts/doodle_atlas.gd")
+const DirectionalAtlas = preload("res://scripts/directional_rig_atlas.gd")
 
 var player
 var light_manager
@@ -108,22 +109,26 @@ func _draw() -> void:
 		draw_line(body_center, left_arm, player.skin_color.darkened(0.12), 7.0, true)
 		draw_line(body_center, right_arm, player.skin_color.darkened(0.12), 7.0, true)
 
-	_draw_shoe(left_leg, forward, false)
-	_draw_shoe(right_leg, forward, true)
+	if visual_mode != 2:
+		_draw_shoe(left_leg, forward, false)
+		_draw_shoe(right_leg, forward, true)
 
 	# Classic retains the original abstract rotating doodle. Detailed and Rig use
 	# a smaller head so the shoulders and clothing read clearly at phone scale.
 	if visual_mode == 0:
 		draw_circle(body_center, 22.0, player.clothing_dark)
 		draw_circle(body_center + forward * 2.0, 19.0, player.clothing_color)
-	else:
+	elif visual_mode == 1:
 		_draw_part(3 + gait_style, body_center - forward * 3.0, forward, Vector2(62, 50) * (1.0 + idle_breath * 0.012))
 		if player.appearance_id % 2 == 1:
 			_draw_part(7, body_center - forward * 16.0, forward, Vector2(30, 31))
+	else:
+		_draw_directional_part(8 + _direction_index(forward), body_center - forward * 2.0, Vector2(65, 74))
 
-	_draw_arm(left_arm, right * -1.0, player.skin_color.darkened(0.11))
-	_draw_arm(right_arm, right, player.skin_color.darkened(0.11))
-	if personality.gesture == "phone": _draw_part(8, right_arm + forward * 4.0, forward, Vector2(11, 19))
+	if visual_mode != 2:
+		_draw_arm(left_arm, right * -1.0, player.skin_color.darkened(0.11))
+		_draw_arm(right_arm, right, player.skin_color.darkened(0.11))
+		if personality.gesture == "phone": _draw_part(8, right_arm + forward * 4.0, forward, Vector2(11, 19))
 
 	# Head, skin rim and directional forehead highlight.
 	var head_forward: Vector2 = forward.rotated(personality.head_angle * (1.0 - player.ragdoll_blend))
@@ -136,17 +141,15 @@ func _draw() -> void:
 		draw_circle(head_center + head_right * 25.0, 4.0, player.skin_color)
 		draw_circle(head_center - head_right * 25.0, 4.0, player.skin_color)
 		_draw_hair(head_center, head_forward, head_right, run_blend, step_wave * moving)
+	elif visual_mode == 1:
+		# Hair overlaps the head edge; no exposed skin halo around the raster hair.
+		draw_circle(head_center, 20.0, player.skin_color.darkened(0.50))
+		draw_circle(head_center, 18.5, player.skin_color)
+		draw_circle(head_center + head_right * 18.0, 3.5, player.skin_color)
+		draw_circle(head_center - head_right * 18.0, 3.5, player.skin_color)
+		_draw_part(gait_style, head_center - head_forward * 2.0, head_forward, Vector2(48, 50))
 	else:
-		draw_circle(head_center, 22.5, player.skin_color.darkened(0.50))
-		draw_circle(head_center, 20.5, player.skin_color)
-		draw_circle(head_center + head_right * 20.0, 3.8, player.skin_color)
-		draw_circle(head_center - head_right * 20.0, 3.8, player.skin_color)
-		_draw_part(gait_style, head_center - head_forward * 2.0, head_forward, Vector2(45, 47))
-		# The rig mode may reveal a restrained face cue when the head looks toward
-		# the camera direction; body and head remain independent directional layers.
-		if visual_mode == 2 and head_forward.y > 0.35:
-			draw_circle(head_center + head_forward * 15.0 - head_right * 5.0, 1.4, Color("#40251e"))
-			draw_circle(head_center + head_forward * 15.0 + head_right * 5.0, 1.4, Color("#40251e"))
+		_draw_directional_part(_direction_index(head_forward), head_center, Vector2(52, 54))
 
 	# Tiny direction cue: barely visible while idle, clearer with forward run posture.
 	var cue_alpha: float = 0.12 + 0.12 * run_blend
@@ -169,6 +172,13 @@ func _draw_part(index: int, center: Vector2, forward: Vector2, size: Vector2) ->
 	draw_set_transform(center, forward.angle() + PI * 0.5, Vector2.ONE)
 	draw_texture_rect(Atlas.get_part(index), Rect2(-size * 0.5, size), false)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+func _draw_directional_part(index: int, center: Vector2, size: Vector2) -> void:
+	draw_texture_rect(DirectionalAtlas.get_part(index), Rect2(center - size * 0.5, size), false)
+
+func _direction_index(direction: Vector2) -> int:
+	# Atlas order: N, NE, E, SE, S, SW, W, NW.
+	return posmod(int(roundf((direction.angle() + PI * 0.5) / (PI / 4.0))), 8)
 
 func _snap_direction(direction: Vector2) -> Vector2:
 	var step := PI / 4.0

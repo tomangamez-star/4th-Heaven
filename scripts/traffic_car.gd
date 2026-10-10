@@ -69,19 +69,23 @@ func _create_collision() -> void:
 	area.add_child(impact_collision); add_child(area)
 
 func _create_vehicle_lights() -> void:
-	# Beams and lamp strips are drawn from the actual bumper positions. The old
-	# radial PointLights read as detached yellow/red circles beside the PNGs.
-	pass
+	headlight = PointLight2D.new(); headlight.name = "WorldHeadlight"
+	headlight.texture = _radial_light_texture()
+	headlight.position = Vector2(0, -285 if vehicle_kind == "bus" else -205)
+	headlight.texture_scale = 3.0 if vehicle_kind == "bus" else 2.65
+	headlight.energy = 1.05; headlight.color = Color("#ffe0a0")
+	headlight.add_to_group("vehicle_world_headlight"); add_child(headlight)
 
 func _radial_light_texture() -> GradientTexture2D:
 	var gradient := Gradient.new()
 	gradient.set_color(0, Color(1, 1, 1, 0.92)); gradient.set_color(1, Color(1, 1, 1, 0.0))
 	var texture := GradientTexture2D.new(); texture.gradient = gradient
-	texture.width = 128; texture.height = 128; texture.fill = GradientTexture2D.FILL_RADIAL
+	texture.width = 320; texture.height = 320; texture.fill = GradientTexture2D.FILL_RADIAL
 	texture.fill_from = Vector2(0.5, 0.5); texture.fill_to = Vector2(1.0, 0.5)
 	return texture
 
 func _on_time_state_changed(_state_name: String) -> void:
+	if is_instance_valid(headlight): headlight.enabled = _state_name == "night"
 	queue_redraw()
 
 func configure(points: PackedVector2Array, start_index: int = 0) -> void:

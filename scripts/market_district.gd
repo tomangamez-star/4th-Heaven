@@ -9,6 +9,7 @@ const TITLES := ["Corner Cafe", "Neighbourhood Store"]
 var light_manager
 var doorway_lights: Array[PointLight2D] = []
 var floor_areas: Array[Rect2] = []
+var building_shadows: Array[Sprite2D] = []
 
 func _ready() -> void:
 	name = "MarketDistrict"
@@ -31,6 +32,11 @@ func _ready() -> void:
 		art.scale = Vector2(410.0 / texture.get_width(), 400.0 / texture.get_height())
 		art.z_as_relative = false
 		art.z_index = 12
+		var shadow := Sprite2D.new()
+		shadow.name = "ShopSilhouetteShadow%d" % index
+		shadow.texture = texture; shadow.scale = art.scale
+		shadow.z_as_relative = false; shadow.z_index = 3
+		add_child(shadow); building_shadows.append(shadow)
 		add_child(art)
 		var body := StaticBody2D.new()
 		body.name = "ShopWall%d" % index
@@ -55,9 +61,11 @@ func _ready() -> void:
 		visitor.configure_route(PackedVector2Array([DOORS[index], DOORS[index] + Vector2(110, 70), DOORS[index] + Vector2(-110, 70)]), 1, 0.43 + index * 0.10)
 		visitor.configure_behavior_spots(PackedVector2Array(), PackedVector2Array(), index + 10)
 		visitor.behavior_cooldown = 1.0
+	_add_market_gateway()
 	if is_instance_valid(light_manager):
 		light_manager.time_state_changed.connect(_on_time_changed)
 		_on_time_changed(light_manager.current_state)
+	_update_building_shadows()
 
 func _draw() -> void:
 	for area in floor_areas:
@@ -65,9 +73,6 @@ func _draw() -> void:
 		draw_texture_rect(PAVEMENT, area, true)
 	for index in CENTERS.size():
 		var center: Vector2 = CENTERS[index]
-		var offset: Vector2 = light_manager.get_shadow_offset(22.0) if is_instance_valid(light_manager) else Vector2(12, 18)
-		# A soft footprint stays behind the opaque building; it never owns collision.
-		draw_circle(center + offset, 188.0, light_manager.get_shadow_color(0.42) if is_instance_valid(light_manager) else Color(0, 0, 0, 0.12))
 		var door: Vector2 = DOORS[index]
 		draw_rect(Rect2(door + Vector2(-92, 32), Vector2(184, 62)), Color("#46382d"), true)
 		draw_rect(Rect2(door + Vector2(-86, 38), Vector2(172, 50)), Color("#ead1a2"), true)
@@ -84,6 +89,23 @@ func _add_storefront_label(index: int) -> void:
 	label.add_theme_color_override("font_color", Color("#33261e"))
 	label.z_as_relative = false; label.z_index = 14
 	add_child(label)
+
+func _add_market_gateway() -> void:
+	var sign := Label.new(); sign.name = "MarketStreetGateway"
+	sign.text = "MARKET STREET  →\nCAFE  •  SHOP"
+	sign.position = Vector2(1480, 70); sign.size = Vector2(330, 92)
+	sign.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; sign.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	sign.add_theme_font_size_override("font_size", 23)
+	sign.add_theme_color_override("font_color", Color("#fff0c8")); sign.add_theme_color_override("font_shadow_color", Color(0.08, 0.04, 0.02, 0.9))
+	sign.add_theme_constant_override("shadow_offset_x", 3); sign.add_theme_constant_override("shadow_offset_y", 3)
+	sign.z_as_relative = false; sign.z_index = 16; add_child(sign)
+
+func _update_building_shadows() -> void:
+	var offset: Vector2 = light_manager.get_shadow_offset(22.0) if is_instance_valid(light_manager) else Vector2(12, 18)
+	var color: Color = light_manager.get_shadow_color(0.82) if is_instance_valid(light_manager) else Color(0.03, 0.02, 0.015, 0.25)
+	for index in building_shadows.size():
+		building_shadows[index].position = CENTERS[index] + offset
+		building_shadows[index].modulate = color
 
 func _add_door_light(location: Vector2) -> void:
 	var gradient := Gradient.new()
@@ -106,4 +128,5 @@ func _add_door_light(location: Vector2) -> void:
 
 func _on_time_changed(state: String) -> void:
 	for lamp in doorway_lights: lamp.enabled = state == "night"
+	_update_building_shadows()
 	queue_redraw()

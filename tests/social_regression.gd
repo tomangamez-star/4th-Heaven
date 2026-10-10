@@ -33,6 +33,8 @@ func run() -> void:
 	check(load("res://scripts/doodle_atlas.gd").get_part(0).get_width() > 0, "Raster hair missing")
 	check(load("res://scripts/doodle_atlas.gd").get_part(8).get_height() > 0, "Raster accessory missing")
 	check(load("res://scripts/foliage_atlas.gd").get_part(0).get_width() > 0, "Raster foliage missing")
+	var rig_atlas = load("res://scripts/directional_rig_atlas.gd")
+	check(rig_atlas.get_part(0).get_width() > 0 and rig_atlas.get_part(15).get_width() > 0, "Eight-direction head/body atlas missing")
 	check(player.player_visual_style == 0, "Player style did not begin in Classic")
 	check(player.cycle_player_visual_style() == 1 and player.cycle_player_visual_style() == 2 and player.cycle_player_visual_style() == 0, "Player style toggle did not cycle all three modes")
 	var first: String = npc.personality.greet(player)
@@ -44,6 +46,8 @@ func run() -> void:
 	check(player.personality.gesture == "wave", "Wave failed")
 	check(market.get_node_or_null("ShopWall0") != null and market.get_node_or_null("ShopWall1") != null, "Buildings have no boundaries")
 	check(market.get_node_or_null("ShopSign0") != null and market.get_node_or_null("ShopSign1") != null, "Shops are not visibly signed")
+	check(market.get_node_or_null("MarketStreetGateway") != null, "Market route has no visible gateway")
+	check(market.get_node_or_null("ShopSilhouetteShadow0") != null, "Shop silhouette shadow missing")
 	var roads = scene.get_node("RasterRoads")
 	for center in market.CENTERS:
 		for offset in [Vector2(-180, -200), Vector2(180, 200), Vector2(-180, 200), Vector2(180, -200)]:
@@ -66,8 +70,10 @@ func run() -> void:
 		check(furniture.light_directions[point].length() > 0.99, "Lamp has invalid direction")
 		check(not roads.is_on_road(point), "Lamp base placed on a driving surface: " + str(point))
 	check(get_nodes_in_group("night_fixture_light").size() == furniture.streetlight_spots.size() + furniture.roadlight_spots.size(), "Visible lamp-head glows do not match fixtures")
+	check(get_nodes_in_group("night_fixture_halo").is_empty(), "Opaque lamp halo sprites returned")
+	check(get_nodes_in_group("vehicle_world_headlight").size() >= 5, "Vehicle world-surface headlights missing")
 	if failed:
 		quit(1)
 		return
-	print("v0.2.9 regressions passed: player styles, foliage, shops, lamp-head glows, visits and seating")
+	print("v0.3.0 regressions passed: true directional rig, fitted hair, market gateway, silhouette shadows and surface lights")
 	quit(0)

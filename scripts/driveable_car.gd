@@ -15,6 +15,7 @@ var braking := false
 var reverse_wait := 0.0
 var travel_velocity := Vector2.ZERO
 var light_manager
+var headlight: PointLight2D
 var camera_target_rotation := 0.0
 var camera_turn_hold := 0.0
 var camera_following_turn := false
@@ -40,6 +41,7 @@ func _ready() -> void:
 	safe_margin = 0.05
 	wheel_overlay = WheelOverlayScript.new(); wheel_overlay.name = "SteeringWheels"; add_child(wheel_overlay)
 	sprite = Sprite2D.new(); sprite.texture = CAR_TEXTURE; sprite.scale = Vector2(0.98, 1.05); add_child(sprite)
+	_create_headlight()
 	var collider := CollisionShape2D.new(); collider.name = "PlayerCarCollision"
 	var shape := CapsuleShape2D.new(); shape.radius = 62.0; shape.height = 232.0; collider.shape = shape; add_child(collider)
 	vehicle_camera = Camera2D.new(); vehicle_camera.name = "VehicleCamera"
@@ -53,8 +55,18 @@ func _ready() -> void:
 	vehicle_camera.ignore_rotation = false
 	queue_redraw()
 
+func _create_headlight() -> void:
+	var gradient := Gradient.new()
+	gradient.set_color(0, Color(1, 1, 1, 0.94)); gradient.add_point(0.35, Color(1, 0.84, 0.50, 0.60)); gradient.set_color(1, Color(1, 1, 1, 0))
+	var texture := GradientTexture2D.new(); texture.gradient = gradient; texture.width = 420; texture.height = 420
+	texture.fill = GradientTexture2D.FILL_RADIAL; texture.fill_from = Vector2(0.5, 0.5); texture.fill_to = Vector2(1, 0.5)
+	headlight = PointLight2D.new(); headlight.name = "PlayerCarWorldHeadlight"
+	headlight.position = Vector2(0, -205); headlight.texture = texture; headlight.texture_scale = 1.35
+	headlight.energy = 1.15; headlight.color = Color("#ffe0a0"); headlight.add_to_group("vehicle_world_headlight"); add_child(headlight)
+
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player) or not is_instance_valid(controls): return
+	if is_instance_valid(headlight): headlight.enabled = is_instance_valid(light_manager) and light_manager.is_night()
 	if camera_transition != "":
 		_update_camera_transition(delta)
 		return

@@ -1,4 +1,18 @@
-# 4TH HEAVEN v0.2.9 — Visual Recovery & Three-Style Player Test
+# 4TH HEAVEN v0.3.0 — Visual Correction Patch
+
+- Replaced the fake Rig rotation with a true eight-direction raster head/body atlas; head look remains independent from the body.
+- Fitted Detailed-mode hair over a smaller head so no oversized skin ring shows around it.
+- Removed the opaque square lamp-halo sprites and restored natural PointLight illumination at every visible lamp head.
+- Enlarged the central station to 700 × 390 world pixels and tightened collision to opaque masonry only; its silhouette shadow remains non-collidable.
+- Added a conspicuous Market Street gateway and converted shop shadows to the same raster-silhouette system as the station.
+- Added real vehicle canvas headlights so beams brighten grass, pavement and park surfaces as well as roads.
+- Preserved the approved v0.2.9 driving and camera mechanics unchanged.
+
+Install: extract this modified-files-only archive into the existing v0.2.9 project root while preserving its scripts/, assets/ and tests/ paths.
+
+---
+
+## Previous: v0.2.9 — Visual Recovery & Three-Style Player Test
 
 - Preserved the approved v0.2.8 driving speed, steering, collision and delayed camera behavior.
 - Added a player-only CLASSIC / DETAIL / RIG test button. Classic restores the readable original doodle; Detail uses a smaller head, fitted raster hair and visible shoulders; Rig independently quantizes the layered body and head to eight directions.

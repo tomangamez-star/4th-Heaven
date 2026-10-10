@@ -67,9 +67,11 @@ func _create_collisions() -> void:
 	var holder := Node2D.new(); holder.name = "PlazaCollisions"; add_child(holder)
 	# Three wall bodies follow the enlarged station silhouette while leaving the
 	# front steps, awning shadow and doorway walkable.
-	_add_box(holder, building_center + Vector2(0, -45), Vector2(532, 132), "StationRear")
-	_add_box(holder, building_center + Vector2(-188, 55), Vector2(156, 82), "StationLeftWing")
-	_add_box(holder, building_center + Vector2(188, 55), Vector2(156, 82), "StationRightWing")
+	# Tight wall strips follow only opaque masonry. The awning, steps and PNG
+	# shadow never create an invisible collision wall.
+	_add_box(holder, building_center + Vector2(0, -54), Vector2(560, 118), "StationRear")
+	_add_box(holder, building_center + Vector2(-238, 57), Vector2(142, 80), "StationLeftWing")
+	_add_box(holder, building_center + Vector2(238, 57), Vector2(142, 80), "StationRightWing")
 	for position in tree_positions: _add_circle(holder, position, 30.0, "Tree")
 	for position in bush_positions: _add_circle(holder, position, 25.0, "Bush")
 

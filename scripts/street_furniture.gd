@@ -245,11 +245,6 @@ func _create_street_lights() -> void:
 		art.offset = Vector2(-22, -35); art.position = fixture_position; art.rotation = direction.angle()
 		overlay.add_child(art)
 		var head_position := fixture_position + direction * 132.0
-		var visible_halo := Sprite2D.new(); visible_halo.name = "LampHeadHalo%d" % index
-		visible_halo.texture = head_texture; visible_halo.position = head_position
-		visible_halo.scale = Vector2(0.72, 0.72); visible_halo.modulate = Color("#ffe6a6")
-		visible_halo.z_as_relative = false; visible_halo.z_index = 15
-		visible_halo.add_to_group("night_fixture_halo"); overlay.add_child(visible_halo)
 		var head_lamp := PointLight2D.new(); head_lamp.name = "LampHeadGlow%d" % index
 		head_lamp.position = head_position; head_lamp.texture = head_texture
 		head_lamp.texture_scale = 0.82; head_lamp.energy = 1.85; head_lamp.color = Color("#ffe0a0")
@@ -297,6 +292,4 @@ func _on_time_state_changed(state_name: String) -> void:
 		if lamp.is_ancestor_of(self) or lamp.get_parent() == self: lamp.enabled = enabled
 	for lamp in get_tree().get_nodes_in_group("night_fixture_light"):
 		if lamp.get_parent() == self: lamp.enabled = enabled
-	for halo in get_tree().get_nodes_in_group("night_fixture_halo"):
-		if halo.is_ancestor_of(self) or halo.get_parent() == self: halo.visible = enabled
 	queue_redraw()

@@ -6,6 +6,7 @@ func _init() -> void:
 		"res://scripts/main.gd",
 		"res://scripts/doodle_player.gd",
 		"res://scripts/doodle_visual.gd",
+		"res://scripts/directional_rig_atlas.gd",
 		"res://scripts/touch_controls.gd",
 		"res://scripts/street_walk.gd",
 		"res://scripts/world_activity_manager.gd",
@@ -21,6 +22,7 @@ func _init() -> void:
 		"res://scripts/traffic_junction.gd",
 		"res://scripts/driveable_car.gd",
 		"res://assets/environment/central_station.png",
+		"res://assets/characters/directional_rig.png",
 		"res://assets/environment/streetlight_top.png",
 		"res://assets/vehicles/car_red.png",
 		"res://assets/vehicles/car_blue.png",
@@ -305,5 +307,5 @@ func _init() -> void:
 		push_error("PNG road layer missing or old vector roads still visible")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.2.9 visual recovery and player style test passed")
+	print("4TH HEAVEN v0.3.0 visual correction smoke test passed")
 	quit(0)
