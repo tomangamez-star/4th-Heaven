@@ -17,6 +17,8 @@ var travel_velocity := Vector2.ZERO
 var light_manager
 var camera_target_rotation := 0.0
 var camera_turn_hold := 0.0
+var camera_following_turn := false
+var camera_settle_hold := 0.0
 var camera_transition := ""
 var camera_transition_time := 0.0
 var camera_transition_start_position := Vector2.ZERO
@@ -136,16 +138,30 @@ func _update_camera(delta: float) -> void:
 	# Bound lag, not car position. This never moves the physics body.
 	vehicle_camera.global_position = global_position + (vehicle_camera.global_position-global_position).limit_length(48.0)
 	var desired_rotation := rotation
-	var angle_error := absf(wrapf(desired_rotation - camera_target_rotation, -PI, PI))
-	if absf(speed) > 55.0 and angle_error > deg_to_rad(27.0):
-		camera_turn_hold += delta
-		if camera_turn_hold > 0.20 or angle_error > deg_to_rad(72.0):
-			camera_target_rotation = desired_rotation
-	else:
-		camera_turn_hold = maxf(0.0, camera_turn_hold - delta * 2.0)
+	var visible_heading_error := absf(wrapf(desired_rotation - vehicle_camera.global_rotation, -PI, PI))
+	# A turn has two states. The camera initially holds so small steering inputs do
+	# not twitch the world. Once the car has visibly changed heading for a moment,
+	# follow is latched and the target is refreshed every frame. This avoids the old
+	# 27-degree target snapshots that produced rotate-stop-rotate camera motion.
+	if not camera_following_turn:
+		if absf(speed) > 38.0 and visible_heading_error > deg_to_rad(8.0):
+			camera_turn_hold += delta
+			if camera_turn_hold >= 0.16:
+				camera_following_turn = true
+				camera_settle_hold = 0.0
+		else:
+			camera_turn_hold = maxf(0.0, camera_turn_hold - delta * 3.0)
+	if camera_following_turn:
+		camera_target_rotation = desired_rotation
+		var settled := visible_heading_error < deg_to_rad(3.5) and absf(steering) < 0.10
+		camera_settle_hold = camera_settle_hold + delta if settled else 0.0
+		if camera_settle_hold >= 0.32 or absf(speed) < 18.0:
+			camera_following_turn = false
+			camera_turn_hold = 0.0
+			camera_settle_hold = 0.0
 	var camera_error := wrapf(camera_target_rotation - vehicle_camera.global_rotation, -PI, PI)
-	var max_step := deg_to_rad(82.0) * delta
-	vehicle_camera.global_rotation += clampf(camera_error * (1.0 - exp(-2.8 * delta)), -max_step, max_step)
+	var max_step := deg_to_rad(48.0) * delta
+	vehicle_camera.global_rotation += clampf(camera_error * (1.0 - exp(-1.75 * delta)), -max_step, max_step)
 	vehicle_camera.force_update_scroll()
 
 func _enter_vehicle() -> void:
@@ -169,6 +185,9 @@ func _enter_vehicle() -> void:
 	vehicle_camera.global_position = player.global_position
 	vehicle_camera.global_rotation = 0.0
 	camera_target_rotation = rotation
+	camera_following_turn = false
+	camera_turn_hold = 0.0
+	camera_settle_hold = 0.0
 	vehicle_camera.zoom = player_camera.zoom if is_instance_valid(player_camera) else Vector2(1.08, 1.08)
 	vehicle_camera.make_current()
 	vehicle_camera.reset_smoothing()
@@ -223,6 +242,9 @@ func _update_camera_transition(delta: float) -> void:
 	camera_transition = ""
 	if completed == "enter":
 		camera_target_rotation = vehicle_camera.global_rotation
+		camera_following_turn = false
+		camera_turn_hold = 0.0
+		camera_settle_hold = 0.0
 	else:
 		vehicle_camera.enabled = false
 		player.set_physics_process(true)

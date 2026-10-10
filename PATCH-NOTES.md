@@ -1,4 +1,14 @@
-# 4TH HEAVEN v0.2.6 — Cinematic Driving & PNG Station
+# 4TH HEAVEN v0.2.7 — Continuous Camera & Night Coverage
+
+- Replaced stepped camera target snapshots with delayed, continuously updating turn follow.
+- Reduced camera angular speed and added settle hysteresis so long turns remain fluid without small-input twitching.
+- Redesigned the central building as a truly compact raster pavilion with human-scale doors and no baked ground shadow.
+- Added a separate time-aware station shadow and tightened its physical collision footprint.
+- Rebuilt streetlight distribution along every road segment with alternating sides and overlapping road-facing pools.
+
+---
+
+## Previous: v0.2.6 — Cinematic Driving & PNG Station
 
 - Added delayed cinematic camera rotation with a 27-degree dead zone, held-turn detection and bounded angular speed.
 - Added smooth 0.62-second camera blends when entering and exiting sideways vehicles.

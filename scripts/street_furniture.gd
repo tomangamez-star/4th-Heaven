@@ -43,18 +43,7 @@ func _rebuild_layout() -> void:
 	_add_spot(bench_spots, 5, FURNITURE_OFFSET)
 	_add_spot(bench_spots, 11, FURNITURE_OFFSET)
 	_add_spot(bus_stop_spots, 4, FURNITURE_OFFSET + 18.0)
-	_add_spot(streetlight_spots, 0, 382.0)
-	_add_spot(streetlight_spots, 3, 382.0)
-	_add_spot(streetlight_spots, 6, 382.0)
-	_add_spot(streetlight_spots, 9, 382.0)
-	_add_spot(streetlight_spots, 12, 382.0)
-	# Opposite-side fixtures fill the long dark asphalt gaps. Their actual glow
-	# is projected inward toward the road centre rather than onto the park.
-	_add_spot(roadlight_spots, 1, -382.0)
-	_add_spot(roadlight_spots, 4, -382.0)
-	_add_spot(roadlight_spots, 7, -382.0)
-	_add_spot(roadlight_spots, 10, -382.0)
-	_add_spot(roadlight_spots, 13, -382.0)
+	_populate_street_lights()
 	_add_spot(bin_spots, 3, FURNITURE_OFFSET)
 	_add_spot(sign_spots, 4, 386.0)
 	# Social pockets are outside the pavement, never on asphalt or a walking lane.
@@ -67,6 +56,34 @@ func _add_spot(target: PackedVector2Array, route_index: int, offset: float) -> v
 	var position: Vector2 = frame.position + frame.normal * offset
 	target.append(position)
 	prop_rotations[position] = frame.direction.angle()
+
+func _populate_street_lights() -> void:
+	# Sample every road segment instead of placing lamps only at route vertices.
+	# Include the two added district sections as well as the oval; those long roads
+	# were the largest remaining black areas in the night view.
+	var segments: Array = []
+	for segment_index in route.size():
+		segments.append([route[segment_index], route[(segment_index + 1) % route.size()]])
+	segments.append([Vector2(1420, 440), Vector2(2860, 440)])
+	segments.append([Vector2(2350, -1500), Vector2(2350, 1500)])
+	segments.append([Vector2(2350, -760), Vector2(2050, -760)])
+	# Alternating sides and overlapping pools keeps long straight sections readable.
+	var light_index := 0
+	for segment in segments:
+		var start: Vector2 = segment[0]
+		var finish: Vector2 = segment[1]
+		var length := start.distance_to(finish)
+		var count := maxi(1, int(ceil(length / 430.0)))
+		var direction := start.direction_to(finish)
+		var normal := Vector2(-direction.y, direction.x)
+		for step in count:
+			var amount := (float(step) + 0.5) / float(count)
+			var side := 1.0 if light_index % 2 == 0 else -1.0
+			var position := start.lerp(finish, amount) + normal * 382.0 * side
+			if side > 0.0: streetlight_spots.append(position)
+			else: roadlight_spots.append(position)
+			prop_rotations[position] = direction.angle()
+			light_index += 1
 
 func _route_frame(index: int) -> Dictionary:
 	var size := route.size()
@@ -202,20 +219,24 @@ func _create_street_lights() -> void:
 		art.texture = STREETLIGHT_TEXTURE; art.centered = false
 		art.offset = Vector2(-22, -35); art.position = fixture_position; art.rotation = direction.angle()
 		overlay.add_child(art)
-		var glow_position := fixture_position + direction * 142.0
-		if roadlight_spots.has(fixture_position):
-			glow_position += direction * 105.0
+		var glow_position := fixture_position + direction * 245.0
 		var lamp := PointLight2D.new(); lamp.name = "StreetGlow%d" % index
 		lamp.position = glow_position
-		lamp.texture = texture; lamp.texture_scale = 3.15 if roadlight_spots.has(fixture_position) else 2.75
-		lamp.energy = 1.85; lamp.color = Color("#ffd27a")
+		lamp.rotation = prop_rotations.get(fixture_position, 0.0)
+		lamp.texture = texture; lamp.texture_scale = 2.15
+		lamp.energy = 1.55; lamp.color = Color("#ffd78c")
 		lamp.add_to_group("night_street_light")
 		add_child(lamp)
 
 func _nearest_route_point(point: Vector2) -> Vector2:
 	var nearest := Vector2.ZERO
 	var nearest_distance := INF
-	for route_point in route:
+	for index in route.size():
+		var a := route[index]
+		var b := route[(index + 1) % route.size()]
+		var segment := b - a
+		var amount := clampf((point - a).dot(segment) / maxf(segment.length_squared(), 0.001), 0.0, 1.0)
+		var route_point := a + segment * amount
 		var distance := point.distance_squared_to(route_point)
 		if distance < nearest_distance:
 			nearest_distance = distance
@@ -224,7 +245,7 @@ func _nearest_route_point(point: Vector2) -> Vector2:
 
 func _radial_light_texture() -> GradientTexture2D:
 	var gradient := Gradient.new(); gradient.set_color(0, Color(1, 1, 1, 0.95)); gradient.set_color(1, Color(1, 1, 1, 0.0))
-	var texture := GradientTexture2D.new(); texture.gradient = gradient; texture.width = 160; texture.height = 160
+	var texture := GradientTexture2D.new(); texture.gradient = gradient; texture.width = 260; texture.height = 150
 	texture.fill = GradientTexture2D.FILL_RADIAL; texture.fill_from = Vector2(0.5, 0.5); texture.fill_to = Vector2(1.0, 0.5)
 	return texture
 

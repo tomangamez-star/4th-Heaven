@@ -32,12 +32,16 @@ func run() -> void:
 	check(car.get_collision_exceptions().has(player),"Missing driver collision exception")
 	for frame in 40: car._update_camera_transition(1.0/60.0)
 	car.vehicle_camera.global_rotation = 0.0; car.camera_target_rotation = 0.0
-	car.rotation = deg_to_rad(20.0); car.speed = 100.0
+	car.rotation = deg_to_rad(5.0); car.speed = 100.0
 	for frame in 25: car._update_camera(1.0/60.0)
-	check(absf(car.camera_target_rotation) < 0.01,"Camera reacted inside the steering dead zone")
-	car.rotation = deg_to_rad(90.0)
+	check(not car.camera_following_turn,"Camera reacted to an imperceptible heading change")
+	car.rotation = deg_to_rad(18.0)
 	for frame in 20: car._update_camera(1.0/60.0)
-	check(absf(car.camera_target_rotation) > 1.0,"Camera ignored a sustained major turn")
+	check(car.camera_following_turn,"Camera ignored a sustained visible turn")
+	var first_target: float = car.camera_target_rotation
+	car.rotation = deg_to_rad(42.0)
+	for frame in 3: car._update_camera(1.0/60.0)
+	check(car.camera_target_rotation > first_target + 0.2,"Camera follow target froze during a continuing turn")
 	car.rotation = PI/2.0; car.speed = 0.0; car.travel_velocity = Vector2.ZERO
 	var start_angle: float=car.rotation
 	for frame in 30: car._drive(0.0,1.0,1.0/60.0)
@@ -79,5 +83,5 @@ func run() -> void:
 		check(before.distance_to(car.position)<6.0,"Wall collision teleported the car")
 	check(car.position.x < -2160.0,"Car crossed the wall")
 	check(car.speed<=110.0,"Off-road speed cap failed")
-	print("v0.2.6 driving regressions passed; max frame displacement: ",max_step)
+	print("v0.2.7 driving regressions passed; max frame displacement: ",max_step)
 	quit(0)

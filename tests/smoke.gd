@@ -20,6 +20,8 @@ func _init() -> void:
 		"res://scripts/city_extension.gd",
 		"res://scripts/traffic_junction.gd",
 		"res://scripts/driveable_car.gd",
+		"res://assets/environment/central_station.png",
+		"res://assets/environment/streetlight_top.png",
 		"res://assets/vehicles/car_red.png",
 		"res://assets/vehicles/car_blue.png",
 		"res://assets/vehicles/car_gold.png",
@@ -120,7 +122,8 @@ func _init() -> void:
 		push_error("Street furniture behaviour destinations were not configured")
 		quit(1)
 		return
-	if furniture.get_prop_count() != 16 or furniture.streetlight_spots.size() != 5 or furniture.roadlight_spots.size() != 5:
+	var road_lamp_count: int = furniture.streetlight_spots.size() + furniture.roadlight_spots.size()
+	if road_lamp_count < 28 or absi(furniture.streetlight_spots.size() - furniture.roadlight_spots.size()) > 1 or furniture.get_prop_count() != road_lamp_count + 6:
 		push_error("Expanded park and road lighting layout was not applied")
 		quit(1)
 		return
@@ -302,5 +305,5 @@ func _init() -> void:
 		push_error("PNG road layer missing or old vector roads still visible")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.2.6 cinematic driving and PNG station smoke test passed")
+	print("4TH HEAVEN v0.2.7 continuous camera, compact station and night coverage smoke test passed")
 	quit(0)
