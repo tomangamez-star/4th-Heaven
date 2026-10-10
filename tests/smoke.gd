@@ -78,7 +78,7 @@ func _init() -> void:
 		push_error("Temporary laboratory props still exist in the central loop")
 		quit(1)
 		return
-	if get_nodes_in_group("npc").size() != 6 or npc.route_points.size() < 8:
+	if get_nodes_in_group("npc").size() != 8 or npc.route_points.size() < 8:
 		push_error("Routed pedestrian population was not configured")
 		quit(1)
 		return
@@ -305,5 +305,5 @@ func _init() -> void:
 		push_error("PNG road layer missing or old vector roads still visible")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.2.7 continuous camera, compact station and night coverage smoke test passed")
+	print("4TH HEAVEN v0.2.8 raster doodles and market district smoke test passed")
 	quit(0)

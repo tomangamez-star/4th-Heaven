@@ -1,4 +1,5 @@
 extends Node2D
+const Atlas = preload("res://scripts/doodle_atlas.gd")
 
 var player
 var light_manager
@@ -13,11 +14,16 @@ func _draw() -> void:
 		return
 
 	var moving: float = clampf(player.velocity.length() / 45.0, 0.0, 1.0)
+	var personality = player.personality
+	var style: int = player.appearance_id % 3
+	var idle_breath: float = sin(personality.clock * 2.1) * (1.0 - moving)
 	var run_blend: float = clampf((player.velocity.length() - 180.0) / 140.0, 0.0, 1.0)
 	var phase: float = player.stride_phase
 	var forward: Vector2 = player.display_facing
 	var right: Vector2 = Vector2(-forward.y, forward.x)
 	var step_wave: float = sin(phase)
+	if style == 1: step_wave = sin(phase) * 0.75
+	elif style == 2: step_wave = sin(phase) * 1.15
 	var opposite: float = sin(phase + PI)
 	var cadence: float = absf(sin(phase * 2.0))
 	var stop_tug: float = 4.0 * player.run_stop_amount * (1.0 - player.run_stop_amount)
@@ -27,10 +33,13 @@ func _draw() -> void:
 
 	var body_center: Vector2 = -forward * (5.0 + 4.0 * run_blend)
 	var head_center: Vector2 = forward * (8.0 + 9.0 * run_blend)
+	body_center += right * idle_breath * 0.85
+	head_center += forward * idle_breath * 0.7
 	body_center += forward * stop_tug * 3.5
 	head_center += forward * stop_tug * 8.5
 	head_center += right * step_wave * 1.8 * moving
 	var bounce: float = cadence * (1.4 + 1.8 * run_blend) * moving
+	bounce *= [1.0, 0.55, 1.65][style]
 	body_center -= forward * bounce * 0.25
 	head_center -= forward * bounce * 0.12
 
@@ -44,11 +53,19 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	var stride: float = (8.0 + 11.0 * run_blend) * moving
+	stride *= [1.0, 0.72, 1.18][style]
 	var leg_side: float = 10.0
 	var left_leg: Vector2 = body_center - forward * 15.0 - right * leg_side + forward * step_wave * stride
 	var right_leg: Vector2 = body_center - forward * 15.0 + right * leg_side + forward * opposite * stride
 	var left_arm: Vector2 = body_center - right * 27.0 - forward * (step_wave * (5.0 + 6.0 * run_blend) * moving)
 	var right_arm: Vector2 = body_center + right * 27.0 + forward * (step_wave * (5.0 + 6.0 * run_blend) * moving)
+	if personality.gesture == "wave":
+		right_arm += forward * 17.0 + right * sin(personality.clock * 10.0) * 7.0
+	elif personality.gesture == "stretch":
+		left_arm -= right * 8.0
+		right_arm += right * 8.0
+	elif personality.gesture == "phone":
+		right_arm = body_center + forward * 29.0 + right * 13.0
 
 	if player.is_sitting:
 		# Compressed torso and forward feet make the bench pose readable overhead.
@@ -87,23 +104,28 @@ func _draw() -> void:
 		draw_line(body_center, left_arm, player.skin_color.darkened(0.12), 7.0, true)
 		draw_line(body_center, right_arm, player.skin_color.darkened(0.12), 7.0, true)
 
-	_draw_limb(left_leg, forward, 8.0, Color("#303844"), Color("#f5eee3"))
-	_draw_limb(right_leg, forward, 8.0, Color("#303844"), Color("#f5eee3"))
+	_draw_shoe(left_leg, forward, false)
+	_draw_shoe(right_leg, forward, true)
 
 	# Clothing/body remains visible around the dominant head circle.
-	draw_circle(body_center, 24.5, player.clothing_dark)
-	draw_circle(body_center, 22.0, player.clothing_color)
-	draw_arc(body_center, 18.0, 0.0, TAU, 28, Color(0.57, 0.96, 1.0, 0.35), 2.0)
+	_draw_part(3 + style, body_center, forward, Vector2(55, 43) * (1.0 + idle_breath * 0.012))
+	if player.appearance_id % 2 == 1:
+		_draw_part(7, body_center - forward * 14.0, forward, Vector2(27, 28))
 
 	_draw_arm(left_arm, right * -1.0, player.skin_color.darkened(0.11))
 	_draw_arm(right_arm, right, player.skin_color.darkened(0.11))
+	if personality.gesture == "phone": _draw_part(8, right_arm + forward * 4.0, forward, Vector2(11, 19))
 
 	# Head, skin rim and directional forehead highlight.
+	var head_forward: Vector2 = forward.rotated(personality.head_angle * (1.0 - player.ragdoll_blend))
+	var head_right := Vector2(-head_forward.y, head_forward.x)
 	draw_circle(head_center, 29.5, player.skin_color.darkened(0.55))
 	draw_circle(head_center, 27.0, player.skin_color.darkened(0.15))
-	draw_circle(head_center + forward * 5.0, 21.5, player.skin_color)
-	draw_circle(head_center + forward * 11.0 - right * 7.0, 3.2, Color(1.0, 0.80, 0.62, 0.42))
-	_draw_hair(head_center, forward, right, run_blend, step_wave)
+	draw_circle(head_center + head_forward * 5.0, 21.5, player.skin_color)
+	draw_circle(head_center + head_forward * 24.0, 4.5, player.skin_color)
+	draw_circle(head_center + head_right * 25.0, 4.0, player.skin_color)
+	draw_circle(head_center - head_right * 25.0, 4.0, player.skin_color)
+	_draw_part(style, head_center - head_forward * 5.0, head_forward, Vector2(57, 59))
 
 	# Tiny direction cue: barely visible while idle, clearer with forward run posture.
 	var cue_alpha: float = 0.12 + 0.12 * run_blend
@@ -117,6 +139,22 @@ func _draw() -> void:
 		var first_x := -float(dot_count - 1) * 2.2
 		for dot in dot_count:
 			draw_circle(bubble + Vector2(first_x + float(dot) * 4.4, 0), 1.4, Color(0.28, 0.24, 0.20, 0.75))
+	if personality.gesture == "surprise":
+		var marker := head_center + Vector2(36, -35)
+		draw_line(marker, marker + Vector2(0, 10), Color("#ffd36d"), 4.0, true)
+		draw_circle(marker + Vector2(0, 16), 2.5, Color("#ffd36d"))
+
+func _draw_part(index: int, center: Vector2, forward: Vector2, size: Vector2) -> void:
+	draw_set_transform(center, forward.angle() + PI * 0.5, Vector2.ONE)
+	draw_texture_rect(Atlas.get_part(index), Rect2(-size * 0.5, size), false)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+func _draw_shoe(center: Vector2, forward: Vector2, right_shoe: bool) -> void:
+	var pair := Atlas.get_part(6)
+	var region := Rect2(Vector2(pair.get_width() * (0.5 if right_shoe else 0.0), 0), Vector2(pair.get_width() * 0.5, pair.get_height()))
+	draw_set_transform(center, forward.angle() + PI * 0.5, Vector2.ONE)
+	draw_texture_rect_region(pair, Rect2(-7, -11, 14, 22), region)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 func get_talk_dot_count(milliseconds: int) -> int:
 	# Classic (...) -> (..) -> (.) -> (..) -> (...) conversation rhythm.

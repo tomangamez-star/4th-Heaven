@@ -1,10 +1,10 @@
 extends SceneTree
+var failed := false
 
 func check(ok: bool, message: String) -> void:
 	if not ok:
+		failed = true
 		push_error(message)
-		quit(1)
-		assert(ok,message)
 
 func _init() -> void:
 	call_deferred("run")
@@ -83,5 +83,8 @@ func run() -> void:
 		check(before.distance_to(car.position)<6.0,"Wall collision teleported the car")
 	check(car.position.x < -2160.0,"Car crossed the wall")
 	check(car.speed<=110.0,"Off-road speed cap failed")
-	print("v0.2.7 driving regressions passed; max frame displacement: ",max_step)
+	if failed:
+		quit(1)
+		return
+	print("v0.2.8 driving regressions passed; max frame displacement: ",max_step)
 	quit(0)

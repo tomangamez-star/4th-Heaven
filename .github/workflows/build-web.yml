@@ -39,6 +39,8 @@ jobs:
           mkdir -p build/web
           "$GODOT" --headless --editor --path . --import --quit
           "$GODOT" --headless --path . --script tests/smoke.gd
+          "$GODOT" --headless --path . --script tests/driving_regression.gd
+          "$GODOT" --headless --path . --script tests/social_regression.gd
           "$GODOT" --headless --path . --export-release Web build/web/game.html
           cp web/index.html build/web/index.html
           python3 tools/web_cache.py build/web

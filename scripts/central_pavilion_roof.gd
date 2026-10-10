@@ -11,7 +11,12 @@ func _ready() -> void:
 	add_to_group("world_lit_visual")
 	var station_roof := Sprite2D.new()
 	station_roof.name = "RasterCentralStationRoof"
-	station_roof.texture = STATION_TEXTURE
+	# Fit the actual opaque building, not the generated canvas's transparent margin.
+	var cropped := AtlasTexture.new()
+	cropped.atlas = STATION_TEXTURE
+	cropped.region = STATION_TEXTURE.get_image().get_used_rect()
+	station_roof.texture = cropped
+	station_roof.scale = Vector2(390.0 / cropped.get_width(), 233.0 / cropped.get_height())
 	station_roof.position = building_center + Vector2(0, 8)
 	station_roof.z_as_relative = false; station_roof.z_index = 12
 	add_child(station_roof)

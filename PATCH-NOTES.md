@@ -1,4 +1,25 @@
-# 4TH HEAVEN v0.2.7 — Continuous Camera & Night Coverage
+# 4TH HEAVEN v0.2.8 — Doodle Life & Market Corners
+
+- Fixed the Godot 4.3 station-shadow type-inference parse failure that blocked v0.2.7 deployment.
+- Retained v0.2.7 delayed continuous camera following and its driving mechanics.
+- Added generated raster hair, three clothing styles, independently animated sneakers, backpack and phone layers. Hands remain circles; the underlying ragdoll skeleton remains intact.
+- Added smooth head attention bounded to +/-75 degrees (150 degrees total), short glance holds, breathing and weight shifting.
+- Added relaxed, reserved and bouncy stride treatments, waves, stretching and phone idles.
+- Added contextual GREET, SIT/STAND and SHOP actions; WAVE and STRETCH remain available on foot. Moving cancels sitting. These controls hide while driving or ragdolled.
+- NPCs recognize repeated greetings during the session, react tersely after an impact, and can stop briefly to greet one another with a cooldown.
+- Added two raster storefront plots beside the existing east junction: cafe northwest and shop northeast, with fitted wall collisions and front pedestrian access. No new roads replace the accepted connected raster map.
+- Two local visitors walk forecourt routes and make timed shop visits, checking that the doorway is clear before returning. Total NPC population is eight; distance-based activity culling is retained.
+- Corrected extension lamps to aim at their own road segment, widened road light pools and moved fixtures out of the new building plots.
+- Trimmed station canvas padding at render time so the visible footprint and collisions agree.
+- Added head/greeting/shop/layout regression coverage and enabled driving/social tests in the web build workflow.
+
+Scope: shop interaction is an exterior greeting, not a playable interior or purchasing economy. Relationships reset on restart. Residential blocks, more outfits, deep moods and broader incident reactions remain future work.
+
+Install: extract the modified-files archive into the existing v0.2.7 project root, preserving scripts/, assets/, tests/ and .github/ paths. No old asset needs deletion. This archive also includes the deployment fix.
+
+---
+
+## Previous: v0.2.7 — Continuous Camera & Night Coverage
 
 - Replaced stepped camera target snapshots with delayed, continuously updating turn follow.
 - Reduced camera angular speed and added settle hysteresis so long turns remain fluid without small-input twitching.

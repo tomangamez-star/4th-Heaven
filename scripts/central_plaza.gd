@@ -43,7 +43,7 @@ func _draw() -> void:
 	draw_circle(building_center, 275.0, Color("#c9b99e")); draw_circle(building_center, 250.0, Color("#d8c8ac"))
 	# The sprite contains no baked ground shadow. This separate soft footprint can
 	# therefore follow the world's time-of-day shadow direction.
-	var station_shadow := light_manager.get_shadow_offset(18.0) if is_instance_valid(light_manager) else Vector2(12, 17)
+	var station_shadow: Vector2 = light_manager.get_shadow_offset(18.0) if is_instance_valid(light_manager) else Vector2(12, 17)
 	draw_style_box(_rounded_box(Color(0.06, 0.045, 0.035, 0.22), 24.0), Rect2(building_center + station_shadow - Vector2(208, 104), Vector2(416, 208)))
 	for position in tree_positions: _draw_tree_base(position)
 	for position in bush_positions: _draw_bush(position)

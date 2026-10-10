@@ -14,6 +14,8 @@ const CityExtensionScript = preload("res://scripts/city_extension.gd")
 const TrafficJunctionScript = preload("res://scripts/traffic_junction.gd")
 const DriveableCarScript = preload("res://scripts/driveable_car.gd")
 const RasterRoadScript = preload("res://scripts/raster_roads.gd")
+const MarketScript = preload("res://scripts/market_district.gd")
+const SocialScript = preload("res://scripts/social_interactions.gd")
 
 const NPC_STYLES := [
 	[Color("#d76883"), Color("#46202d"), Color("#633823"), Color("#9d6845")],
@@ -114,6 +116,7 @@ func _ready() -> void:
 		var npc = PlayerScript.new()
 		npc.name = "PathNPC%d" % (i + 1)
 		npc.is_npc = true
+		npc.appearance_id = i + 1
 		npc.clothing_color = NPC_STYLES[i][0]
 		npc.clothing_dark = NPC_STYLES[i][1]
 		npc.hair_color = NPC_STYLES[i][2]
@@ -160,6 +163,15 @@ func _ready() -> void:
 	junction_car.configure(city_extension.get_extension_traffic_route(), 1)
 
 	var activity_manager = ActivityManagerScript.new()
+	var market = MarketScript.new()
+	add_child(market)
+	var social = SocialScript.new()
+	social.name = "SocialInteractions"
+	social.player = player
+	social.controls = controls
+	social.furniture = furniture
+	social.market = market
+	add_child(social)
 	activity_manager.name = "WorldActivityManager"
 	activity_manager.player = player
 	add_child(activity_manager)

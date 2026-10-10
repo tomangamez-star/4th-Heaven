@@ -13,6 +13,9 @@ const PART_LEFT_LEG := 4
 const PART_RIGHT_LEG := 5
 
 const VisualScript = preload("res://scripts/doodle_visual.gd")
+const PersonalityScript = preload("res://scripts/doodle_personality.gd")
+var personality
+var appearance_id := 0
 
 var controls
 var facing := Vector2(0, 1)
@@ -77,6 +80,9 @@ func _ready() -> void:
 	visual.name = "ProceduralDoodle"
 	visual.player = self
 	add_child(visual)
+	personality = PersonalityScript.new()
+	personality.name = "Personality"
+	add_child(personality)
 
 	var collider := CollisionShape2D.new()
 	collider.name = "CollisionShape2D"
@@ -115,6 +121,13 @@ func _physics_process(delta: float) -> void:
 		touch_run = controls.run_pressed
 
 	var movement_input := touch if touch.length() > 0.04 else keyboard
+	if is_sitting and movement_input.length() < 0.08:
+		velocity = Vector2.ZERO
+		visual.queue_redraw()
+		return
+	if is_sitting:
+		is_sitting = false
+		behavior_state = "walk"
 	input_strength = clampf(movement_input.length(), 0.0, 1.0)
 	is_running = input_strength > 0.12 and (touch_run or Input.is_action_pressed("run"))
 	if was_running and input_strength < 0.08 and velocity.length() > 235.0:
@@ -242,6 +255,12 @@ func _nearest_behavior_spot(spots: PackedVector2Array, maximum_distance: float) 
 func _try_start_route_behavior() -> bool:
 	if behavior_cooldown > 0.0 or behavior_rng.randf() > 0.12:
 		return false
+	if behavior_rng.randf() < 0.25:
+		behavior_state = "idle"
+		behavior_timer = 3.0
+		behavior_look_direction = display_facing
+		personality.emote("phone" if appearance_id % 2 == 0 else "stretch", 2.8)
+		return true
 	if behavior_rng.randf() < 0.46 and not sit_spots.is_empty():
 		var seat := _nearest_behavior_spot(sit_spots, 390.0)
 		if not is_inf(seat.x):
@@ -430,6 +449,8 @@ func _apply_crate_pushes() -> void:
 func trigger_ragdoll(impulse: Vector2) -> void:
 	if ragdoll_active:
 		return
+	is_sitting = false
+	if is_instance_valid(personality): personality.emote("surprise", 2.0)
 	if not is_npc and is_instance_valid(controls):
 		controls.set_push_visible(false)
 	run_stop_amount = 0.0

@@ -15,6 +15,8 @@ var roadlight_spots := PackedVector2Array()
 var bin_spots := PackedVector2Array()
 var sign_spots := PackedVector2Array()
 var prop_rotations: Dictionary = {}
+var light_directions: Dictionary = {}
+var road_surfaces: Array = []
 
 func configure(points: PackedVector2Array) -> void:
 	route = points.duplicate()
@@ -37,6 +39,7 @@ func _ready() -> void:
 func _rebuild_layout() -> void:
 	bench_spots.clear(); bus_stop_spots.clear(); gather_spots.clear()
 	streetlight_spots.clear(); roadlight_spots.clear(); bin_spots.clear(); sign_spots.clear(); prop_rotations.clear()
+	light_directions.clear()
 	if route.size() < 8: return
 	# Sparse, deliberate furniture beyond both pedestrian lanes on the open-space side.
 	_add_spot(bench_spots, 2, FURNITURE_OFFSET)
@@ -58,6 +61,17 @@ func _add_spot(target: PackedVector2Array, route_index: int, offset: float) -> v
 	prop_rotations[position] = frame.direction.angle()
 
 func _populate_street_lights() -> void:
+	road_surfaces.clear()
+	var map_data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/roads/map.json"))
+	for polygon in map_data.roads:
+		var outer := PackedVector2Array()
+		for vertex in polygon.outer: outer.append(Vector2(vertex[0], vertex[1]))
+		var holes: Array = []
+		for ring in polygon.holes:
+			var hole := PackedVector2Array()
+			for vertex in ring: hole.append(Vector2(vertex[0], vertex[1]))
+			holes.append(hole)
+		road_surfaces.append({"outer": outer, "holes": holes})
 	# Sample every road segment instead of placing lamps only at route vertices.
 	# Include the two added district sections as well as the oval; those long roads
 	# were the largest remaining black areas in the night view.
@@ -80,10 +94,45 @@ func _populate_street_lights() -> void:
 			var amount := (float(step) + 0.5) / float(count)
 			var side := 1.0 if light_index % 2 == 0 else -1.0
 			var position := start.lerp(finish, amount) + normal * 382.0 * side
+			var inward := -normal * side
+			var tangent_angle := direction.angle()
+			# Cafe/store plots are solid buildings, not lamp mounting locations.
+			for center in [Vector2(1900, -60), Vector2(2800, -60)]:
+				if Rect2(center - Vector2(200, 220), Vector2(400, 455)).has_point(position):
+					position.y = 205.0
+					inward = Vector2.DOWN
+					tangent_angle = 0.0
+			if _fixture_on_road(position, segments):
+				var original := position
+				var found := false
+				for radius in [80.0, 160.0, 240.0, 320.0, 400.0]:
+					for angle in 8:
+						var candidate: Vector2 = original + Vector2.RIGHT.rotated(float(angle) * PI / 4.0) * float(radius)
+						if not _fixture_on_road(candidate, segments):
+							position = candidate
+							inward = position.direction_to(start.lerp(finish, amount))
+							found = true
+							break
+					if found: break
 			if side > 0.0: streetlight_spots.append(position)
 			else: roadlight_spots.append(position)
-			prop_rotations[position] = direction.angle()
+			prop_rotations[position] = tangent_angle
+			light_directions[position] = inward
 			light_index += 1
+
+func _fixture_on_road(point: Vector2, segments: Array) -> bool:
+	for surface in road_surfaces:
+		if Geometry2D.is_point_in_polygon(point, surface.outer):
+			var inside_hole := false
+			for hole in surface.holes:
+				if Geometry2D.is_point_in_polygon(point, hole): inside_hole = true
+			if not inside_hole: return true
+	for segment in segments:
+		if _distance_to_segment(point, segment[0], segment[1]) < 215.0: return true
+	if Rect2(1550, -1055, 650, 590).has_point(point): return true
+	for center in [Vector2(1900, -60), Vector2(2800, -60)]:
+		if Rect2(center - Vector2(205, 225), Vector2(410, 445)).has_point(point): return true
+	return absf(point.x) > 2980.0 or absf(point.y) > 1980.0
 
 func _route_frame(index: int) -> Dictionary:
 	var size := route.size()
@@ -214,17 +263,17 @@ func _create_street_lights() -> void:
 	overlay.z_as_relative = false; overlay.z_index = 14; add_child(overlay)
 	for index in all_lights.size():
 		var fixture_position: Vector2 = all_lights[index]
-		var direction := fixture_position.direction_to(_nearest_route_point(fixture_position))
+		var direction: Vector2 = light_directions.get(fixture_position, fixture_position.direction_to(_nearest_route_point(fixture_position)))
 		var art := Sprite2D.new(); art.name = "StreetlightArt%d" % index
 		art.texture = STREETLIGHT_TEXTURE; art.centered = false
 		art.offset = Vector2(-22, -35); art.position = fixture_position; art.rotation = direction.angle()
 		overlay.add_child(art)
-		var glow_position := fixture_position + direction * 245.0
+		var glow_position := fixture_position + direction * 360.0
 		var lamp := PointLight2D.new(); lamp.name = "StreetGlow%d" % index
 		lamp.position = glow_position
 		lamp.rotation = prop_rotations.get(fixture_position, 0.0)
 		lamp.texture = texture; lamp.texture_scale = 2.15
-		lamp.energy = 1.55; lamp.color = Color("#ffd78c")
+		lamp.energy = 1.25; lamp.color = Color("#ffd78c")
 		lamp.add_to_group("night_street_light")
 		add_child(lamp)
 
@@ -245,7 +294,7 @@ func _nearest_route_point(point: Vector2) -> Vector2:
 
 func _radial_light_texture() -> GradientTexture2D:
 	var gradient := Gradient.new(); gradient.set_color(0, Color(1, 1, 1, 0.95)); gradient.set_color(1, Color(1, 1, 1, 0.0))
-	var texture := GradientTexture2D.new(); texture.gradient = gradient; texture.width = 260; texture.height = 150
+	var texture := GradientTexture2D.new(); texture.gradient = gradient; texture.width = 420; texture.height = 320
 	texture.fill = GradientTexture2D.FILL_RADIAL; texture.fill_from = Vector2(0.5, 0.5); texture.fill_to = Vector2(1.0, 0.5)
 	return texture
 
