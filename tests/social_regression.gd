@@ -32,6 +32,9 @@ func run() -> void:
 	check(absf(personality.head_angle - previous) < 0.2, "Head snapped across left/right limit")
 	check(load("res://scripts/doodle_atlas.gd").get_part(0).get_width() > 0, "Raster hair missing")
 	check(load("res://scripts/doodle_atlas.gd").get_part(8).get_height() > 0, "Raster accessory missing")
+	check(load("res://scripts/foliage_atlas.gd").get_part(0).get_width() > 0, "Raster foliage missing")
+	check(player.player_visual_style == 0, "Player style did not begin in Classic")
+	check(player.cycle_player_visual_style() == 1 and player.cycle_player_visual_style() == 2 and player.cycle_player_visual_style() == 0, "Player style toggle did not cycle all three modes")
 	var first: String = npc.personality.greet(player)
 	var second: String = npc.personality.greet(player)
 	check(first != second, "Repeat greeting did not recognize player")
@@ -40,6 +43,7 @@ func run() -> void:
 	player.personality.emote("wave")
 	check(player.personality.gesture == "wave", "Wave failed")
 	check(market.get_node_or_null("ShopWall0") != null and market.get_node_or_null("ShopWall1") != null, "Buildings have no boundaries")
+	check(market.get_node_or_null("ShopSign0") != null and market.get_node_or_null("ShopSign1") != null, "Shops are not visibly signed")
 	var roads = scene.get_node("RasterRoads")
 	for center in market.CENTERS:
 		for offset in [Vector2(-180, -200), Vector2(180, 200), Vector2(-180, 200), Vector2(180, -200)]:
@@ -61,8 +65,9 @@ func run() -> void:
 	for point in furniture.light_directions:
 		check(furniture.light_directions[point].length() > 0.99, "Lamp has invalid direction")
 		check(not roads.is_on_road(point), "Lamp base placed on a driving surface: " + str(point))
+	check(get_nodes_in_group("night_fixture_light").size() == furniture.streetlight_spots.size() + furniture.roadlight_spots.size(), "Visible lamp-head glows do not match fixtures")
 	if failed:
 		quit(1)
 		return
-	print("v0.2.8 social regressions passed: head bounds, raster layers, moods, buildings, shop visits, seating")
+	print("v0.2.9 regressions passed: player styles, foliage, shops, lamp-head glows, visits and seating")
 	quit(0)

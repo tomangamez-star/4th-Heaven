@@ -28,7 +28,7 @@ func _ready() -> void:
 		art.name = TITLES[index].replace(" ", "")
 		art.texture = texture
 		art.position = CENTERS[index]
-		art.scale = Vector2(360.0 / texture.get_width(), 400.0 / texture.get_height())
+		art.scale = Vector2(410.0 / texture.get_width(), 400.0 / texture.get_height())
 		art.z_as_relative = false
 		art.z_index = 12
 		add_child(art)
@@ -37,11 +37,12 @@ func _ready() -> void:
 		body.position = CENTERS[index] + Vector2(0, -20)
 		var collider := CollisionShape2D.new()
 		var shape := RectangleShape2D.new()
-		shape.size = Vector2(344, 346)
+		shape.size = Vector2(410, 330)
 		collider.shape = shape
 		body.add_child(collider)
 		add_child(body)
-		floor_areas.append(Rect2(CENTERS[index] + Vector2(-190, -205), Vector2(380, 515)))
+		floor_areas.append(Rect2(CENTERS[index] + Vector2(-220, -205), Vector2(440, 515)))
+		_add_storefront_label(index)
 		_add_door_light(DOORS[index])
 		var visitor = VisitorScript.new()
 		visitor.name = "MarketVisitor%d" % index
@@ -62,12 +63,27 @@ func _draw() -> void:
 	for area in floor_areas:
 		# Existing raster paving extends only up to the pavement, never onto asphalt.
 		draw_texture_rect(PAVEMENT, area, true)
-	for center in CENTERS:
+	for index in CENTERS.size():
+		var center: Vector2 = CENTERS[index]
 		var offset: Vector2 = light_manager.get_shadow_offset(22.0) if is_instance_valid(light_manager) else Vector2(12, 18)
-		var shadow := StyleBoxFlat.new()
-		shadow.bg_color = light_manager.get_shadow_color(0.8) if is_instance_valid(light_manager) else Color(0, 0, 0, 0.2)
-		shadow.set_corner_radius_all(9)
-		draw_style_box(shadow, Rect2(center - Vector2(180, 200) + offset, Vector2(360, 400)))
+		# A soft footprint stays behind the opaque building; it never owns collision.
+		draw_circle(center + offset, 188.0, light_manager.get_shadow_color(0.42) if is_instance_valid(light_manager) else Color(0, 0, 0, 0.12))
+		var door: Vector2 = DOORS[index]
+		draw_rect(Rect2(door + Vector2(-92, 32), Vector2(184, 62)), Color("#46382d"), true)
+		draw_rect(Rect2(door + Vector2(-86, 38), Vector2(172, 50)), Color("#ead1a2"), true)
+		draw_colored_polygon(PackedVector2Array([door + Vector2(-18, 96), door + Vector2(18, 96), door + Vector2(0, 122)]), Color("#d36b4e" if index == 0 else "#4a9b82"))
+
+func _add_storefront_label(index: int) -> void:
+	var label := Label.new()
+	label.name = "ShopSign%d" % index
+	label.text = "CORNER CAFE" if index == 0 else "NEIGHBOURHOOD SHOP"
+	label.position = DOORS[index] + Vector2(-112, 43)
+	label.size = Vector2(224, 34)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 17)
+	label.add_theme_color_override("font_color", Color("#33261e"))
+	label.z_as_relative = false; label.z_index = 14
+	add_child(label)
 
 func _add_door_light(location: Vector2) -> void:
 	var gradient := Gradient.new()

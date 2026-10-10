@@ -12,6 +12,8 @@ func _draw() -> void:
 	var push: Vector2 = controls.push_center
 	var interact: Vector2 = controls.interact_center
 	_draw_time_buttons()
+	if not controls.driving_mode:
+		_draw_style_button()
 	draw_circle(jc, 86.0, Color(0.035, 0.045, 0.055, 0.34))
 	draw_circle(jc, 84.0, Color(0.84, 0.94, 0.95, 0.10), false, 3.0)
 	draw_circle(jk, 37.0, Color(0.87, 0.96, 0.97, 0.31))
@@ -76,6 +78,15 @@ func _draw_time_buttons() -> void:
 				var direction := Vector2.RIGHT.rotated(deg_to_rad(float(angle)))
 				draw_line(center + Vector2(-22, -3) + direction * 11.0, center + Vector2(-22, -3) + direction * 15.0, colors[i], 2.0)
 		draw_string(ThemeDB.fallback_font, center + Vector2(-8, 5), labels[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.94, 0.98, 0.98, 0.88))
+
+func _draw_style_button() -> void:
+	var center: Vector2 = controls.style_button_center
+	var style := 0
+	var player = get_tree().get_first_node_in_group("player_doodle")
+	if is_instance_valid(player): style = player.player_visual_style
+	var labels := ["CLASSIC", "DETAIL", "RIG"]
+	draw_style_box(_time_box(Color(0.035, 0.045, 0.055, 0.74), Color("#73d7df")), Rect2(center - Vector2(47, 24), Vector2(94, 48)))
+	draw_string(ThemeDB.fallback_font, center + Vector2(-35, 5), labels[style], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.92, 1.0, 1.0, 0.94))
 
 func _draw_driving_controls() -> void:
 	for data in [[controls.brake_center, "BRAKE", controls.brake_pressed, Color("#d95b4f")], [controls.throttle_center, "GO", controls.throttle_pressed, Color("#46b878")]]:

@@ -16,6 +16,7 @@ const VisualScript = preload("res://scripts/doodle_visual.gd")
 const PersonalityScript = preload("res://scripts/doodle_personality.gd")
 var personality
 var appearance_id := 0
+var player_visual_style := 0
 
 var controls
 var facing := Vector2(0, 1)
@@ -96,6 +97,10 @@ func _ready() -> void:
 		add_to_group("world_activity")
 
 func _physics_process(delta: float) -> void:
+	if not is_npc and Input.is_action_just_pressed("ui_focus_next"):
+		cycle_player_visual_style()
+	if not is_npc and is_instance_valid(controls) and controls.consume_style_request():
+		cycle_player_visual_style()
 	if not is_npc and ((is_instance_valid(controls) and controls.consume_ragdoll_request()) or Input.is_action_just_pressed("ragdoll")):
 		trigger_ragdoll(display_facing * 390.0)
 
@@ -157,6 +162,14 @@ func _physics_process(delta: float) -> void:
 	_apply_crate_pushes()
 	_update_push_interaction()
 	visual.queue_redraw()
+
+func cycle_player_visual_style() -> int:
+	if is_npc:
+		return 0
+	player_visual_style = (player_visual_style + 1) % 3
+	if is_instance_valid(visual):
+		visual.queue_redraw()
+	return player_visual_style
 
 func _update_npc(delta: float) -> void:
 	behavior_cooldown = maxf(0.0, behavior_cooldown - delta)

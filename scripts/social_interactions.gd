@@ -35,7 +35,7 @@ func _ready() -> void:
 	add_child(message)
 	get_viewport().size_changed.connect(_reflow)
 	_reflow()
-	_notify("New: head glances + emotes. Shops are beside the east junction.", 7.0)
+	_notify("Player style test: CLASSIC / DETAIL / RIG. Shops are signed beside the east junction.", 8.0)
 
 func _button(title: String, action: Callable) -> Button:
 	var button := Button.new()

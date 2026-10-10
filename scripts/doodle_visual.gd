@@ -15,20 +15,24 @@ func _draw() -> void:
 
 	var moving: float = clampf(player.velocity.length() / 45.0, 0.0, 1.0)
 	var personality = player.personality
-	var style: int = player.appearance_id % 3
+	var gait_style: int = player.appearance_id % 3
+	var visual_mode: int = 0 if player.is_npc else player.player_visual_style
 	var idle_breath: float = sin(personality.clock * 2.1) * (1.0 - moving)
 	var run_blend: float = clampf((player.velocity.length() - 180.0) / 140.0, 0.0, 1.0)
 	var phase: float = player.stride_phase
 	var forward: Vector2 = player.display_facing
 	var right: Vector2 = Vector2(-forward.y, forward.x)
 	var step_wave: float = sin(phase)
-	if style == 1: step_wave = sin(phase) * 0.75
-	elif style == 2: step_wave = sin(phase) * 1.15
+	if gait_style == 1: step_wave = sin(phase) * 0.75
+	elif gait_style == 2: step_wave = sin(phase) * 1.15
 	var opposite: float = sin(phase + PI)
 	var cadence: float = absf(sin(phase * 2.0))
 	var stop_tug: float = 4.0 * player.run_stop_amount * (1.0 - player.run_stop_amount)
 	if stop_tug > 0.001:
 		forward = forward.lerp(player.run_stop_forward, 0.72).normalized()
+		right = Vector2(-forward.y, forward.x)
+	if visual_mode == 2:
+		forward = _snap_direction(forward)
 		right = Vector2(-forward.y, forward.x)
 
 	var body_center: Vector2 = -forward * (5.0 + 4.0 * run_blend)
@@ -39,7 +43,7 @@ func _draw() -> void:
 	head_center += forward * stop_tug * 8.5
 	head_center += right * step_wave * 1.8 * moving
 	var bounce: float = cadence * (1.4 + 1.8 * run_blend) * moving
-	bounce *= [1.0, 0.55, 1.65][style]
+	bounce *= [1.0, 0.55, 1.65][gait_style]
 	body_center -= forward * bounce * 0.25
 	head_center -= forward * bounce * 0.12
 
@@ -53,7 +57,7 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	var stride: float = (8.0 + 11.0 * run_blend) * moving
-	stride *= [1.0, 0.72, 1.18][style]
+	stride *= [1.0, 0.72, 1.18][gait_style]
 	var leg_side: float = 10.0
 	var left_leg: Vector2 = body_center - forward * 15.0 - right * leg_side + forward * step_wave * stride
 	var right_leg: Vector2 = body_center - forward * 15.0 + right * leg_side + forward * opposite * stride
@@ -107,10 +111,15 @@ func _draw() -> void:
 	_draw_shoe(left_leg, forward, false)
 	_draw_shoe(right_leg, forward, true)
 
-	# Clothing/body remains visible around the dominant head circle.
-	_draw_part(3 + style, body_center, forward, Vector2(55, 43) * (1.0 + idle_breath * 0.012))
-	if player.appearance_id % 2 == 1:
-		_draw_part(7, body_center - forward * 14.0, forward, Vector2(27, 28))
+	# Classic retains the original abstract rotating doodle. Detailed and Rig use
+	# a smaller head so the shoulders and clothing read clearly at phone scale.
+	if visual_mode == 0:
+		draw_circle(body_center, 22.0, player.clothing_dark)
+		draw_circle(body_center + forward * 2.0, 19.0, player.clothing_color)
+	else:
+		_draw_part(3 + gait_style, body_center - forward * 3.0, forward, Vector2(62, 50) * (1.0 + idle_breath * 0.012))
+		if player.appearance_id % 2 == 1:
+			_draw_part(7, body_center - forward * 16.0, forward, Vector2(30, 31))
 
 	_draw_arm(left_arm, right * -1.0, player.skin_color.darkened(0.11))
 	_draw_arm(right_arm, right, player.skin_color.darkened(0.11))
@@ -118,14 +127,26 @@ func _draw() -> void:
 
 	# Head, skin rim and directional forehead highlight.
 	var head_forward: Vector2 = forward.rotated(personality.head_angle * (1.0 - player.ragdoll_blend))
+	if visual_mode == 2:
+		head_forward = _snap_direction(head_forward)
 	var head_right := Vector2(-head_forward.y, head_forward.x)
-	draw_circle(head_center, 29.5, player.skin_color.darkened(0.55))
-	draw_circle(head_center, 27.0, player.skin_color.darkened(0.15))
-	draw_circle(head_center + head_forward * 5.0, 21.5, player.skin_color)
-	draw_circle(head_center + head_forward * 24.0, 4.5, player.skin_color)
-	draw_circle(head_center + head_right * 25.0, 4.0, player.skin_color)
-	draw_circle(head_center - head_right * 25.0, 4.0, player.skin_color)
-	_draw_part(style, head_center - head_forward * 5.0, head_forward, Vector2(57, 59))
+	if visual_mode == 0:
+		draw_circle(head_center, 29.5, player.skin_color.darkened(0.55))
+		draw_circle(head_center, 27.0, player.skin_color)
+		draw_circle(head_center + head_right * 25.0, 4.0, player.skin_color)
+		draw_circle(head_center - head_right * 25.0, 4.0, player.skin_color)
+		_draw_hair(head_center, head_forward, head_right, run_blend, step_wave * moving)
+	else:
+		draw_circle(head_center, 22.5, player.skin_color.darkened(0.50))
+		draw_circle(head_center, 20.5, player.skin_color)
+		draw_circle(head_center + head_right * 20.0, 3.8, player.skin_color)
+		draw_circle(head_center - head_right * 20.0, 3.8, player.skin_color)
+		_draw_part(gait_style, head_center - head_forward * 2.0, head_forward, Vector2(45, 47))
+		# The rig mode may reveal a restrained face cue when the head looks toward
+		# the camera direction; body and head remain independent directional layers.
+		if visual_mode == 2 and head_forward.y > 0.35:
+			draw_circle(head_center + head_forward * 15.0 - head_right * 5.0, 1.4, Color("#40251e"))
+			draw_circle(head_center + head_forward * 15.0 + head_right * 5.0, 1.4, Color("#40251e"))
 
 	# Tiny direction cue: barely visible while idle, clearer with forward run posture.
 	var cue_alpha: float = 0.12 + 0.12 * run_blend
@@ -148,6 +169,10 @@ func _draw_part(index: int, center: Vector2, forward: Vector2, size: Vector2) ->
 	draw_set_transform(center, forward.angle() + PI * 0.5, Vector2.ONE)
 	draw_texture_rect(Atlas.get_part(index), Rect2(-size * 0.5, size), false)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+func _snap_direction(direction: Vector2) -> Vector2:
+	var step := PI / 4.0
+	return Vector2.RIGHT.rotated(roundf(direction.angle() / step) * step)
 
 func _draw_shoe(center: Vector2, forward: Vector2, right_shoe: bool) -> void:
 	var pair := Atlas.get_part(6)

@@ -1,4 +1,22 @@
-# 4TH HEAVEN v0.2.8 — Doodle Life & Market Corners
+# 4TH HEAVEN v0.2.9 — Visual Recovery & Three-Style Player Test
+
+- Preserved the approved v0.2.8 driving speed, steering, collision and delayed camera behavior.
+- Added a player-only CLASSIC / DETAIL / RIG test button. Classic restores the readable original doodle; Detail uses a smaller head, fitted raster hair and visible shoulders; Rig independently quantizes the layered body and head to eight directions.
+- NPCs use the restored Classic renderer while the three experimental styles affect only the player and share one movement/collision body.
+- Restored a visible warm glow at every streetlight head while retaining the wider projected pools that illuminate the road.
+- Replaced automatic lamp relocation with a deliberate staggered layout, removing corner clusters and clearing storefront approaches.
+- Enlarged the central station from a 390px to 560px visual footprint and enlarged its forecourt to match.
+- Replaced the rectangular station shadow with a dynamic alpha-silhouette shadow. The shadow has no collision.
+- Split station collision across the rear and side wings, leaving the visible entrance, steps and shadow walkable.
+- Replaced central-park vector tree crowns, bushes, grass circles and flower dots with a transparent hand-painted raster foliage atlas.
+- Enlarged and signed the east cafe and neighbourhood shop, added road-facing entrance plaques and retained exterior visitor behavior.
+- Added regression coverage for all three player styles, raster foliage, shop signage, lamp-head glows and the station silhouette shadow.
+
+Install: extract this modified-files-only archive into the existing v0.2.8 project root while preserving its scripts/, assets/ and tests/ paths.
+
+---
+
+## Previous: v0.2.8 — Doodle Life & Market Corners
 
 - Fixed the Godot 4.3 station-shadow type-inference parse failure that blocked v0.2.7 deployment.
 - Retained v0.2.7 delayed continuous camera following and its driving mechanics.

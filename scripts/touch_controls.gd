@@ -27,6 +27,8 @@ var throttle_center := Vector2.ZERO
 var brake_center := Vector2.ZERO
 var light_manager
 var time_button_centers: Array[Vector2] = []
+var style_button_center := Vector2.ZERO
+var style_requested := false
 const TIME_STATES := ["morning", "afternoon", "evening", "night"]
 var viewport_size := Vector2(1280, 720)
 const HudScript = preload("res://scripts/touch_hud_visual.gd")
@@ -59,12 +61,17 @@ func _reflow() -> void:
 	var start_x := viewport_size.x * 0.5 - 156.0
 	for i in TIME_STATES.size():
 		time_button_centers.append(Vector2(start_x + float(i) * 104.0, 48.0))
+	style_button_center = Vector2(72.0, 48.0)
 	if is_instance_valid(hud):
 		hud.queue_redraw()
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		if event.pressed:
+			if not driving_mode and event.position.distance_to(style_button_center) <= 48.0:
+				style_requested = true
+				if is_instance_valid(hud): hud.queue_redraw()
+				return
 			var time_index := _time_button_at(event.position)
 			if time_index >= 0:
 				if is_instance_valid(light_manager): light_manager.set_time_state(TIME_STATES[time_index])
@@ -128,6 +135,12 @@ func consume_ragdoll_request() -> bool:
 	if not ragdoll_requested:
 		return false
 	ragdoll_requested = false
+	return true
+
+func consume_style_request() -> bool:
+	if not style_requested:
+		return false
+	style_requested = false
 	return true
 
 func consume_push_request() -> bool:

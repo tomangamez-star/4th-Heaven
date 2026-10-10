@@ -144,7 +144,7 @@ func _init() -> void:
 		return
 	var plaza_collisions := plaza.get_node_or_null("PlazaCollisions")
 	var pavilion_roof := plaza.get_node_or_null("PavilionRoofAndCanopies")
-	if plaza_collisions == null or plaza_collisions.get_child_count() != 12 or pavilion_roof == null or pavilion_roof.get_node_or_null("RasterCentralStationRoof") == null or pavilion_roof.z_index <= player.z_index:
+	if plaza_collisions == null or plaza_collisions.get_child_count() != 13 or pavilion_roof == null or pavilion_roof.get_node_or_null("RasterCentralStationRoof") == null or pavilion_roof.get_node_or_null("StationSilhouetteShadow") == null or pavilion_roof.z_index <= player.z_index:
 		push_error("Central plaza layering or collisions were not created")
 		quit(1)
 		return
@@ -305,5 +305,5 @@ func _init() -> void:
 		push_error("PNG road layer missing or old vector roads still visible")
 		quit(1)
 		return
-	print("4TH HEAVEN v0.2.8 raster doodles and market district smoke test passed")
+	print("4TH HEAVEN v0.2.9 visual recovery and player style test passed")
 	quit(0)

@@ -76,6 +76,7 @@ func _ready() -> void:
 	var player = PlayerScript.new()
 	player.name = "DoodlePlayer"
 	player.add_to_group("doodles")
+	player.add_to_group("player_doodle")
 	add_child(player)
 	# Begin on the outer pedestrian lane instead of inside the widened roadway.
 	player.global_position = Vector2(0, 137)

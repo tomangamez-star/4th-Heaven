@@ -1,12 +1,13 @@
 extends Node2D
 
 const RoofScript = preload("res://scripts/central_pavilion_roof.gd")
+const Foliage = preload("res://scripts/foliage_atlas.gd")
 
 var light_manager
 var lawn_boundary := PackedVector2Array()
 var building_center := Vector2(0, 430)
-var tree_positions := PackedVector2Array([Vector2(-690, 285), Vector2(690, 285), Vector2(-690, 570), Vector2(690, 570)])
-var bush_positions := PackedVector2Array([Vector2(-475, 225), Vector2(475, 225), Vector2(-475, 625), Vector2(475, 625), Vector2(-820, 430), Vector2(820, 430)])
+var tree_positions := PackedVector2Array([Vector2(-760, 250), Vector2(760, 250), Vector2(-760, 610), Vector2(760, 610)])
+var bush_positions := PackedVector2Array([Vector2(-560, 205), Vector2(560, 205), Vector2(-560, 660), Vector2(560, 660), Vector2(-900, 430), Vector2(900, 430)])
 
 func configure(inner_sidewalk_edge: PackedVector2Array) -> void:
 	lawn_boundary = inner_sidewalk_edge.duplicate()
@@ -30,21 +31,19 @@ func _draw() -> void:
 		for point in lawn_boundary:
 			lawn_inner.append(point.lerp(building_center, 0.025))
 		draw_colored_polygon(lawn_inner, Color("#5b8b4b"))
-	for x in range(-850, 851, 170):
-		for y in range(235, 651, 105):
-			var wave := sin(float(x) * 0.012 + float(y) * 0.017)
-			draw_circle(Vector2(x, y), 54.0, Color(0.18, 0.34, 0.16, 0.08 + absf(wave) * 0.04))
-	for flower in [Vector2(-760, 350), Vector2(-575, 560), Vector2(590, 310), Vector2(760, 530), Vector2(-340, 245), Vector2(350, 610)]:
-		draw_circle(flower, 5.0, Color("#f1d58a")); draw_circle(flower + Vector2(5, 2), 3.0, Color("#e59b91"))
+	# Raster grass and flower clusters replace the old translucent vector circles.
+	for x in range(-900, 901, 180):
+		for y in range(215, 671, 115):
+			if absf(float(x)) < 175.0: continue
+			var size := Vector2(112, 78) * (0.88 + float(posmod(x + y, 5)) * 0.035)
+			draw_texture_rect(Foliage.get_part(3), Rect2(Vector2(x, y) - size * 0.5, size), false, Color(1, 1, 1, 0.42))
+	for flower in [Vector2(-650, 350), Vector2(-505, 575), Vector2(540, 305), Vector2(690, 550), Vector2(-330, 235), Vector2(360, 620)]:
+		draw_texture_rect(Foliage.get_part(2), Rect2(flower - Vector2(34, 24), Vector2(68, 48)), false)
 	# Wide stone walk connects both sidewalks through the station forecourt.
 	draw_rect(Rect2(-92, 170, 184, 520), Color("#aa9b83"), true)
 	draw_rect(Rect2(-78, 170, 156, 520), Color("#d0c1a7"), true)
 	for y in range(190, 681, 52): draw_line(Vector2(-76, y), Vector2(76, y), Color(0.30, 0.24, 0.18, 0.18), 2.0)
-	draw_circle(building_center, 275.0, Color("#c9b99e")); draw_circle(building_center, 250.0, Color("#d8c8ac"))
-	# The sprite contains no baked ground shadow. This separate soft footprint can
-	# therefore follow the world's time-of-day shadow direction.
-	var station_shadow: Vector2 = light_manager.get_shadow_offset(18.0) if is_instance_valid(light_manager) else Vector2(12, 17)
-	draw_style_box(_rounded_box(Color(0.06, 0.045, 0.035, 0.22), 24.0), Rect2(building_center + station_shadow - Vector2(208, 104), Vector2(416, 208)))
+	draw_circle(building_center, 350.0, Color("#c9b99e")); draw_circle(building_center, 326.0, Color("#d8c8ac"))
 	for position in tree_positions: _draw_tree_base(position)
 	for position in bush_positions: _draw_bush(position)
 
@@ -60,15 +59,17 @@ func _draw_tree_base(position: Vector2) -> void:
 	draw_circle(position, 19.0, Color("#5a3a25")); draw_circle(position, 11.0, Color("#9a6740"))
 
 func _draw_bush(position: Vector2) -> void:
-	draw_circle(position + Vector2(8, 10), 25.0, Color(0.07, 0.12, 0.05, 0.22))
-	draw_circle(position, 24.0, Color("#315f38")); draw_circle(position + Vector2(-9, -5), 16.0, Color("#4b8248")); draw_circle(position + Vector2(10, -7), 13.0, Color("#6a9b55"))
+	var shadow: Vector2 = light_manager.get_shadow_offset(7.0) if is_instance_valid(light_manager) else Vector2(5, 7)
+	draw_texture_rect(Foliage.get_part(1), Rect2(position + shadow - Vector2(39, 30), Vector2(78, 60)), false, Color(0.03, 0.04, 0.02, 0.24))
+	draw_texture_rect(Foliage.get_part(1), Rect2(position - Vector2(38, 34), Vector2(76, 68)), false)
 
 func _create_collisions() -> void:
 	var holder := Node2D.new(); holder.name = "PlazaCollisions"; add_child(holder)
-	# Two fitted bodies follow the roof and entrance instead of one oversized
-	# blocker, leaving the visible forecourt corners walkable.
-	_add_box(holder, building_center + Vector2(0, -12), Vector2(382, 132), "StationMain")
-	_add_box(holder, building_center + Vector2(0, 78), Vector2(142, 68), "StationEntrance")
+	# Three wall bodies follow the enlarged station silhouette while leaving the
+	# front steps, awning shadow and doorway walkable.
+	_add_box(holder, building_center + Vector2(0, -45), Vector2(532, 132), "StationRear")
+	_add_box(holder, building_center + Vector2(-188, 55), Vector2(156, 82), "StationLeftWing")
+	_add_box(holder, building_center + Vector2(188, 55), Vector2(156, 82), "StationRightWing")
 	for position in tree_positions: _add_circle(holder, position, 30.0, "Tree")
 	for position in bush_positions: _add_circle(holder, position, 25.0, "Bush")
 

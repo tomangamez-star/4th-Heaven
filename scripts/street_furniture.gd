@@ -72,53 +72,28 @@ func _populate_street_lights() -> void:
 			for vertex in ring: hole.append(Vector2(vertex[0], vertex[1]))
 			holes.append(hole)
 		road_surfaces.append({"outer": outer, "holes": holes})
-	# Sample every road segment instead of placing lamps only at route vertices.
-	# Include the two added district sections as well as the oval; those long roads
-	# were the largest remaining black areas in the night view.
-	var segments: Array = []
-	for segment_index in route.size():
-		segments.append([route[segment_index], route[(segment_index + 1) % route.size()]])
-	segments.append([Vector2(1420, 440), Vector2(2860, 440)])
-	segments.append([Vector2(2350, -1500), Vector2(2350, 1500)])
-	segments.append([Vector2(2350, -760), Vector2(2050, -760)])
-	# Alternating sides and overlapping pools keeps long straight sections readable.
-	var light_index := 0
-	for segment in segments:
-		var start: Vector2 = segment[0]
-		var finish: Vector2 = segment[1]
-		var length := start.distance_to(finish)
-		var count := maxi(1, int(ceil(length / 430.0)))
-		var direction := start.direction_to(finish)
-		var normal := Vector2(-direction.y, direction.x)
-		for step in count:
-			var amount := (float(step) + 0.5) / float(count)
-			var side := 1.0 if light_index % 2 == 0 else -1.0
-			var position := start.lerp(finish, amount) + normal * 382.0 * side
-			var inward := -normal * side
-			var tangent_angle := direction.angle()
-			# Cafe/store plots are solid buildings, not lamp mounting locations.
-			for center in [Vector2(1900, -60), Vector2(2800, -60)]:
-				if Rect2(center - Vector2(200, 220), Vector2(400, 455)).has_point(position):
-					position.y = 205.0
-					inward = Vector2.DOWN
-					tangent_angle = 0.0
-			if _fixture_on_road(position, segments):
-				var original := position
-				var found := false
-				for radius in [80.0, 160.0, 240.0, 320.0, 400.0]:
-					for angle in 8:
-						var candidate: Vector2 = original + Vector2.RIGHT.rotated(float(angle) * PI / 4.0) * float(radius)
-						if not _fixture_on_road(candidate, segments):
-							position = candidate
-							inward = position.direction_to(start.lerp(finish, amount))
-							found = true
-							break
-					if found: break
-			if side > 0.0: streetlight_spots.append(position)
-			else: roadlight_spots.append(position)
-			prop_rotations[position] = tangent_angle
-			light_directions[position] = inward
-			light_index += 1
+	# One deliberate fixture per oval route node prevents doubled poles at corners.
+	for index in route.size():
+		var frame := _route_frame(index)
+		var side := 1.0 if index % 2 == 0 else -1.0
+		_register_lamp(frame.position + frame.normal * 382.0 * side, -frame.normal * side, frame.direction.angle(), side > 0.0)
+	# Staggered extension lights keep the shop-facing pavement clear and illuminate
+	# both lanes without the clustered automatic relocation from the prior patch.
+	for data in [
+		[Vector2(1580, 1000), Vector2.UP, 0.0, true], [Vector2(1840, 1000), Vector2.UP, 0.0, false],
+		[Vector2(2120, 1000), Vector2.UP, 0.0, true], [Vector2(2600, 1000), Vector2.UP, 0.0, false],
+		[Vector2(2720, 1000), Vector2.UP, 0.0, true], [Vector2(2920, 1000), Vector2.UP, 0.0, false],
+		[Vector2(1968, -1320), Vector2.RIGHT, PI * 0.5, true], [Vector2(2732, -1040), Vector2.LEFT, PI * 0.5, false],
+		[Vector2(2732, -620), Vector2.LEFT, PI * 0.5, true], [Vector2(2732, -180), Vector2.LEFT, PI * 0.5, false],
+		[Vector2(1968, 1080), Vector2.RIGHT, PI * 0.5, true], [Vector2(2732, 1380), Vector2.LEFT, PI * 0.5, false]
+	]:
+		_register_lamp(data[0], data[1], data[2], data[3])
+
+func _register_lamp(position: Vector2, inward: Vector2, tangent_angle: float, primary: bool) -> void:
+	if primary: streetlight_spots.append(position)
+	else: roadlight_spots.append(position)
+	prop_rotations[position] = tangent_angle
+	light_directions[position] = inward.normalized()
 
 func _fixture_on_road(point: Vector2, segments: Array) -> bool:
 	for surface in road_surfaces:
@@ -258,6 +233,7 @@ func _lamp_box() -> StyleBoxFlat:
 
 func _create_street_lights() -> void:
 	var texture := _radial_light_texture()
+	var head_texture := _lamp_head_texture()
 	var all_lights := streetlight_spots + roadlight_spots
 	var overlay := Node2D.new(); overlay.name = "StreetlightArtOverlay"
 	overlay.z_as_relative = false; overlay.z_index = 14; add_child(overlay)
@@ -268,6 +244,16 @@ func _create_street_lights() -> void:
 		art.texture = STREETLIGHT_TEXTURE; art.centered = false
 		art.offset = Vector2(-22, -35); art.position = fixture_position; art.rotation = direction.angle()
 		overlay.add_child(art)
+		var head_position := fixture_position + direction * 132.0
+		var visible_halo := Sprite2D.new(); visible_halo.name = "LampHeadHalo%d" % index
+		visible_halo.texture = head_texture; visible_halo.position = head_position
+		visible_halo.scale = Vector2(0.72, 0.72); visible_halo.modulate = Color("#ffe6a6")
+		visible_halo.z_as_relative = false; visible_halo.z_index = 15
+		visible_halo.add_to_group("night_fixture_halo"); overlay.add_child(visible_halo)
+		var head_lamp := PointLight2D.new(); head_lamp.name = "LampHeadGlow%d" % index
+		head_lamp.position = head_position; head_lamp.texture = head_texture
+		head_lamp.texture_scale = 0.82; head_lamp.energy = 1.85; head_lamp.color = Color("#ffe0a0")
+		head_lamp.add_to_group("night_fixture_light"); add_child(head_lamp)
 		var glow_position := fixture_position + direction * 360.0
 		var lamp := PointLight2D.new(); lamp.name = "StreetGlow%d" % index
 		lamp.position = glow_position
@@ -298,8 +284,19 @@ func _radial_light_texture() -> GradientTexture2D:
 	texture.fill = GradientTexture2D.FILL_RADIAL; texture.fill_from = Vector2(0.5, 0.5); texture.fill_to = Vector2(1.0, 0.5)
 	return texture
 
+func _lamp_head_texture() -> GradientTexture2D:
+	var gradient := Gradient.new()
+	gradient.set_color(0, Color(1, 1, 1, 1.0)); gradient.add_point(0.22, Color(1.0, 0.86, 0.48, 0.92)); gradient.set_color(1, Color(1, 1, 1, 0.0))
+	var texture := GradientTexture2D.new(); texture.gradient = gradient; texture.width = 96; texture.height = 96
+	texture.fill = GradientTexture2D.FILL_RADIAL; texture.fill_from = Vector2(0.5, 0.5); texture.fill_to = Vector2(1.0, 0.5)
+	return texture
+
 func _on_time_state_changed(state_name: String) -> void:
 	var enabled := state_name == "night"
 	for lamp in get_tree().get_nodes_in_group("night_street_light"):
 		if lamp.is_ancestor_of(self) or lamp.get_parent() == self: lamp.enabled = enabled
+	for lamp in get_tree().get_nodes_in_group("night_fixture_light"):
+		if lamp.get_parent() == self: lamp.enabled = enabled
+	for halo in get_tree().get_nodes_in_group("night_fixture_halo"):
+		if halo.is_ancestor_of(self) or halo.get_parent() == self: halo.visible = enabled
 	queue_redraw()
